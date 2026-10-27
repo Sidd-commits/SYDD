@@ -3,13 +3,13 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateDaySummary } from "@/lib/calculations";
-import { formatDisplayDate, getTodayISODate } from "@/lib/dateUtils";
+import { formatDisplayDate } from "@/lib/dateUtils";
 import { MetricCard } from "@/components/MetricCard";
 import { HabitsChecklist } from "@/components/HabitsChecklist";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { WeeklyRecap } from "@/components/WeeklyRecap";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
-import { Sparkles, Calendar } from "lucide-react";
+import { Sparkles, Calendar, Activity } from "lucide-react";
 
 export function OverviewView() {
   const { appData, openQuickLog, logWater, today } = useApp();
@@ -17,31 +17,32 @@ export function OverviewView() {
   const goals = appData.settings.goals;
 
   return (
-    <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-24 md:pb-16">
       {/* Onboarding Banner */}
       <OnboardingBanner />
 
       {/* Date & Day Summary Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-stone-500 dark:text-stone-400 uppercase tracking-wider">
-            <Calendar className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
+            <Calendar className="w-3.5 h-3.5 text-zinc-400" />
             <span>{formatDisplayDate(today, "full")}</span>
           </div>
-          <h1 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-100 tracking-tight mt-0.5">
-            Today&apos;s Focus
+          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2.5">
+            <span>Daily Overview</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse" />
           </h1>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {summary.activeDay ? (
-            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 rounded-full text-xs font-bold">
-              <Sparkles className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-bold shadow-md shadow-emerald-500/10">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               <span>Active day stacked!</span>
             </div>
           ) : (
-            <div className="text-xs text-stone-500 font-medium">
-              Log steps, water, or a habit to stack today.
+            <div className="text-xs text-zinc-400 font-medium px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+              Complete a goal or habit to stack today&apos;s green cell
             </div>
           )}
         </div>
@@ -59,7 +60,7 @@ export function OverviewView() {
           isGoalMet={summary.stepsMet}
           hasData={summary.steps > 0 || appData.dailyRecords.some((r) => r.date === today && r.steps !== undefined)}
           onEdit={() => openQuickLog("steps")}
-          onQuickAdd={(amount) => openQuickLog("steps")}
+          onQuickAdd={() => openQuickLog("steps")}
           quickAddOptions={[{ label: "Log Steps", amount: 0 }]}
         />
 
@@ -82,7 +83,7 @@ export function OverviewView() {
 
         {/* Workout Card */}
         <MetricCard
-          title="Workout"
+          title="Workouts"
           type="workout"
           value={summary.workoutMinutes}
           target={goals.workoutGoalEnabled ? goals.workoutMinutesPerDay : undefined}
@@ -116,7 +117,7 @@ export function OverviewView() {
       {/* Signature Contribution Heatmap */}
       <ActivityHeatmap />
 
-      {/* Weekly Recap */}
+      {/* Weekly Analytics Recap */}
       <WeeklyRecap />
     </div>
   );

@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateDaySummary, isHabitCompleted } from "@/lib/calculations";
-import { formatDisplayDate, getTodayISODate } from "@/lib/dateUtils";
+import { formatDisplayDate } from "@/lib/dateUtils";
 import {
   X,
   Calendar,
@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Trash2,
   Plus,
-  Edit2,
+  Edit3,
   StickyNote,
 } from "lucide-react";
 
@@ -28,6 +28,7 @@ export function DayDetailModal() {
     toggleHabit,
     deleteWorkout,
     saveDailyNotes,
+    today,
   } = useApp();
 
   const [notes, setNotes] = useState("");
@@ -36,7 +37,7 @@ export function DayDetailModal() {
   if (!isDayDetailOpen) return null;
 
   const summary = calculateDaySummary(appData, selectedDate);
-  const isToday = selectedDate === getTodayISODate();
+  const isSelectedToday = selectedDate === today;
 
   const handleNotesSave = () => {
     saveDailyNotes(notes, selectedDate);
@@ -48,34 +49,37 @@ export function DayDetailModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="day-detail-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div
-        className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh] relative"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Ambient glow */}
+        <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
         {/* Header */}
-        <div className="p-4 sm:p-5 border-b border-stone-100 dark:border-stone-800 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800 text-stone-600 dark:text-stone-300">
+        <div className="p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-emerald-400">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 id="day-detail-title" className="text-base font-bold text-stone-900 dark:text-stone-100">
+                <h2 id="day-detail-title" className="text-base sm:text-lg font-bold text-white tracking-tight">
                   {formatDisplayDate(selectedDate, "full")}
                 </h2>
-                {isToday && (
-                  <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full">
+                {isSelectedToday && (
+                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
                     Today
                   </span>
                 )}
               </div>
-              <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
+              <p className="text-xs text-zinc-400 mt-0.5">
                 {summary.hasData ? (
                   summary.activeDay ? (
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium">
-                      Active day • Goals / habits stacked
+                    <span className="text-emerald-400 font-medium">
+                      Active day stacked • Level {summary.level} consistency
                     </span>
                   ) : (
                     <span>Activity logged</span>
@@ -90,89 +94,89 @@ export function DayDetailModal() {
           <button
             onClick={closeDayDetail}
             aria-label="Close dialog"
-            className="p-1.5 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 rounded-xl hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+            className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 flex-1 overflow-y-auto space-y-5">
+        <div className="p-5 flex-1 overflow-y-auto space-y-5 relative z-10">
           {/* Metrics Overview 4-grid */}
           <div className="grid grid-cols-2 gap-3">
             {/* Steps */}
-            <div className="p-3.5 bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 rounded-2xl flex flex-col justify-between">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">
-                  <Footprints className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                  <Footprints className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Steps</span>
                 </div>
                 {summary.stepsMet && (
-                  <span className="text-[10px] font-bold text-emerald-600">Met</span>
+                  <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-stone-100">
+              <div className="mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
                   {summary.steps > 0 ? summary.steps.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-stone-400">/ {summary.stepsGoal.toLocaleString()}</span>
+                <span className="text-xs text-zinc-500 font-mono">/ {summary.stepsGoal.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Water */}
-            <div className="p-3.5 bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 rounded-2xl flex flex-col justify-between">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">
-                  <Droplet className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                  <Droplet className="w-3.5 h-3.5 text-sky-400" />
                   <span>Water</span>
                 </div>
                 {summary.waterMet && (
-                  <span className="text-[10px] font-bold text-sky-600">Met</span>
+                  <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 px-1.5 py-0.5 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-stone-100">
-                  {summary.waterMl > 0 ? `${summary.waterMl} ml` : "—"}
+              <div className="mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
+                  {summary.waterMl > 0 ? `${summary.waterMl}` : "—"}
                 </span>
-                <span className="text-xs text-stone-400">/ {summary.waterGoal} ml</span>
+                <span className="text-xs text-zinc-500 font-mono">/ {summary.waterGoal} ml</span>
               </div>
             </div>
 
             {/* Workouts */}
-            <div className="p-3.5 bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 rounded-2xl flex flex-col justify-between">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">
-                  <Dumbbell className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                  <Dumbbell className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Workout</span>
                 </div>
                 {summary.workoutMet && (
-                  <span className="text-[10px] font-bold text-indigo-600">Met</span>
+                  <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-stone-100">
+              <div className="mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
                   {summary.workoutMinutes > 0 ? `${summary.workoutMinutes}m` : "—"}
                 </span>
                 {summary.workoutGoalEnabled && (
-                  <span className="text-xs text-stone-400">/ {summary.workoutGoal}m</span>
+                  <span className="text-xs text-zinc-500 font-mono">/ {summary.workoutGoal}m</span>
                 )}
               </div>
             </div>
 
             {/* Calories */}
-            <div className="p-3.5 bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 rounded-2xl flex flex-col justify-between">
+            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5 text-xs font-semibold text-stone-500 dark:text-stone-400">
-                  <Flame className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                  <Flame className="w-3.5 h-3.5 text-amber-400" />
                   <span>Calories</span>
                 </div>
-                <span className="text-[10px] text-stone-400">Intake</span>
+                <span className="text-[10px] text-zinc-500 font-mono">Intake</span>
               </div>
-              <div className="mt-2 flex items-baseline gap-1">
-                <span className="text-xl font-extrabold tabular-nums text-stone-900 dark:text-stone-100">
+              <div className="mt-2.5 flex items-baseline gap-1.5">
+                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
                   {summary.caloriesConsumed > 0 ? summary.caloriesConsumed.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-stone-400">kcal</span>
+                <span className="text-xs text-zinc-500 font-mono">kcal</span>
               </div>
             </div>
           </div>
@@ -180,15 +184,15 @@ export function DayDetailModal() {
           {/* Workouts Logged for this Day */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
-                Workouts ({summary.workouts.length})
+              <h3 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                Workouts Logged ({summary.workouts.length})
               </h3>
               <button
                 onClick={() => {
                   closeDayDetail();
                   openQuickLog("workout");
                 }}
-                className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1"
+                className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
                 <span>Add Workout</span>
@@ -196,27 +200,27 @@ export function DayDetailModal() {
             </div>
 
             {summary.workouts.length === 0 ? (
-              <p className="text-xs text-stone-400 italic">No workouts logged on this date.</p>
+              <p className="text-xs text-zinc-500 italic">No workouts logged on this date.</p>
             ) : (
               <div className="space-y-2">
                 {summary.workouts.map((w) => (
                   <div
                     key={w.id}
-                    className="flex items-center justify-between p-2.5 rounded-xl bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 text-xs"
+                    className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs"
                   >
                     <div>
-                      <span className="font-bold capitalize text-stone-900 dark:text-stone-100">
+                      <span className="font-bold capitalize text-white">
                         {w.type}
                       </span>
-                      <span className="text-stone-500 ml-2 font-medium">{w.durationMinutes} minutes</span>
+                      <span className="text-zinc-400 ml-2 font-mono font-medium">{w.durationMinutes} mins</span>
                       {w.notes && (
-                        <p className="text-stone-400 text-[11px] mt-0.5">{w.notes}</p>
+                        <p className="text-zinc-500 text-[11px] mt-0.5">{w.notes}</p>
                       )}
                     </div>
                     <button
                       onClick={() => deleteWorkout(w.id)}
                       aria-label="Delete workout"
-                      className="p-1.5 text-stone-400 hover:text-rose-600 transition-colors"
+                      className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
                     </button>
@@ -228,13 +232,13 @@ export function DayDetailModal() {
 
           {/* Habits Status for this Date */}
           <div>
-            <h3 className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-2">
-              Habits ({summary.completedHabits.length} completed)
+            <h3 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-2">
+              Habits Status ({summary.completedHabits.length} completed)
             </h3>
             {appData.habits.length === 0 ? (
-              <p className="text-xs text-stone-400 italic">No habits configured.</p>
+              <p className="text-xs text-zinc-500 italic">No habits configured.</p>
             ) : (
-              <div className="space-y-1.5">
+              <div className="space-y-2">
                 {appData.habits
                   .filter((h) => h.active)
                   .map((habit) => {
@@ -243,22 +247,22 @@ export function DayDetailModal() {
                       <div
                         key={habit.id}
                         onClick={() => toggleHabit(habit.id, selectedDate)}
-                        className={`flex items-center justify-between p-2.5 rounded-xl border text-xs cursor-pointer transition-all ${
+                        className={`flex items-center justify-between p-3 rounded-2xl border text-xs cursor-pointer transition-all ${
                           done
-                            ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100 font-medium"
-                            : "bg-stone-50 dark:bg-stone-850 border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400"
+                            ? "bg-emerald-500/10 border-emerald-500/40 text-emerald-200"
+                            : "bg-white/[0.03] border-white/[0.08] text-zinc-400 hover:border-white/20"
                         }`}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2.5">
                           <CheckCircle2
                             className={`w-4 h-4 ${
-                              done ? "text-emerald-600 dark:text-emerald-400" : "text-stone-300 dark:text-stone-600"
+                              done ? "text-emerald-400" : "text-zinc-600"
                             }`}
                           />
-                          <span className={done ? "line-through opacity-80" : ""}>{habit.name}</span>
+                          <span className={done ? "line-through text-zinc-400" : "text-zinc-200"}>{habit.name}</span>
                         </div>
-                        <span className="text-[11px] font-semibold text-stone-400">
-                          {done ? "Completed" : "Not completed"}
+                        <span className="text-[10px] font-mono font-bold text-zinc-500">
+                          {done ? "Completed" : "Pending"}
                         </span>
                       </div>
                     );
@@ -270,9 +274,9 @@ export function DayDetailModal() {
           {/* Notes for this day */}
           <div>
             <div className="flex items-center justify-between mb-1.5">
-              <h3 className="text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider flex items-center gap-1.5">
-                <StickyNote className="w-3.5 h-3.5 text-stone-400" />
-                <span>Daily Note</span>
+              <h3 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider flex items-center gap-1.5">
+                <StickyNote className="w-3.5 h-3.5 text-zinc-500" />
+                <span>Daily Log Note</span>
               </h3>
               {!isEditingNotes && (
                 <button
@@ -281,7 +285,7 @@ export function DayDetailModal() {
                     setNotes(rec?.notes || "");
                     setIsEditingNotes(true);
                   }}
-                  className="text-xs text-emerald-600 hover:text-emerald-700 font-medium"
+                  className="text-xs text-emerald-400 hover:text-emerald-300 font-bold cursor-pointer"
                 >
                   Edit Note
                 </button>
@@ -293,31 +297,31 @@ export function DayDetailModal() {
                 <textarea
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
-                  placeholder="How did you feel today? Note soreness, sleep quality, or achievements..."
+                  placeholder="How did you feel today? Any soreness, energy levels, personal highlights..."
                   rows={3}
-                  className="w-full p-2.5 text-xs bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-stone-900 dark:text-stone-100"
+                  className="w-full p-3 text-xs bg-white/[0.04] border border-white/[0.12] rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white placeholder:text-zinc-500"
                 />
                 <div className="flex items-center gap-2 justify-end">
                   <button
                     type="button"
                     onClick={() => setIsEditingNotes(false)}
-                    className="px-3 py-1.5 text-xs text-stone-500 rounded-lg hover:bg-stone-100 dark:hover:bg-stone-800"
+                    className="px-3 py-1.5 text-xs text-zinc-400 rounded-xl hover:bg-white/[0.05] cursor-pointer"
                   >
                     Cancel
                   </button>
                   <button
                     type="button"
                     onClick={handleNotesSave}
-                    className="px-3 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg"
+                    className="px-4 py-1.5 text-xs font-bold bg-emerald-500 hover:bg-emerald-400 text-zinc-950 rounded-xl cursor-pointer"
                   >
                     Save Note
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="p-3 rounded-xl bg-stone-50 dark:bg-stone-850 border border-stone-200/80 dark:border-stone-800 text-xs text-stone-600 dark:text-stone-300 min-h-[44px]">
+              <div className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs text-zinc-300 min-h-[44px]">
                 {appData.dailyRecords.find((r) => r.date === selectedDate)?.notes || (
-                  <span className="italic text-stone-400">No note written for this date.</span>
+                  <span className="italic text-zinc-500">No notes recorded for this date.</span>
                 )}
               </div>
             )}
@@ -325,18 +329,18 @@ export function DayDetailModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-stone-100 dark:border-stone-800 flex items-center justify-between bg-stone-50/50 dark:bg-stone-850/50">
-          <span className="text-xs text-stone-400">
-            SYDD Local Record
+        <div className="p-4 border-t border-white/[0.08] flex items-center justify-between bg-zinc-900/50 relative z-10">
+          <span className="text-xs font-mono text-zinc-500">
+            Local Device Record
           </span>
           <button
             onClick={() => {
               closeDayDetail();
               openQuickLog("steps");
             }}
-            className="flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-colors shadow-xs"
+            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
           >
-            <Edit2 className="w-3.5 h-3.5" />
+            <Edit3 className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Edit Metrics for this Day</span>
           </button>
         </div>

@@ -5,11 +5,9 @@ import { useApp } from "@/context/AppContext";
 import { Goals } from "@/types";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
-  Settings,
   Target,
   Download,
   Upload,
-  RotateCcw,
   Trash2,
   ShieldCheck,
   Check,
@@ -60,7 +58,6 @@ export function SettingsView() {
       setImportError("Failed to read the selected file.");
     };
     reader.readAsText(file);
-    // Reset input
     e.target.value = "";
   };
 
@@ -68,35 +65,35 @@ export function SettingsView() {
     <div className="space-y-6 animate-fade-in pb-20 md:pb-12 max-w-4xl mx-auto">
       {/* View Header */}
       <div>
-        <h1 className="text-xl sm:text-2xl font-black text-stone-900 dark:text-stone-100 tracking-tight">
-          Settings & Data
+        <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          Settings & Preferences
         </h1>
-        <p className="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mt-0.5">
-          Configure daily targets, manage exports and backups, and view privacy settings.
+        <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
+          Configure daily targets, download backups, and manage offline storage.
         </p>
       </div>
 
       {/* Daily Goals Configuration */}
-      <div className="bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-xs">
-        <div className="flex items-center gap-2 mb-4">
-          <div className="p-2 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400">
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl">
+        <div className="flex items-center gap-3 mb-5">
+          <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <Target className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
-              Daily Activity Targets
+            <h2 className="text-base font-bold text-white tracking-tight">
+              Daily Consistency Targets
             </h2>
-            <p className="text-xs text-stone-500 dark:text-stone-400">
-              Personal reference goals. Adjust them anytime without altering past raw records.
+            <p className="text-xs text-zinc-400">
+              Personal reference goals. Adjust anytime without modifying past raw entries.
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleGoalsSubmit} className="space-y-4">
+        <form onSubmit={handleGoalsSubmit} className="space-y-5">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Steps Target */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                 Daily Step Target
               </label>
               <div className="relative">
@@ -109,9 +106,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, stepsPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full px-3.5 py-2.5 text-sm bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl font-bold tabular-nums text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs text-stone-400 font-medium">
+                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
                   steps
                 </span>
               </div>
@@ -119,7 +116,7 @@ export function SettingsView() {
 
             {/* Water Target */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-1">
+              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
                 Daily Hydration Target
               </label>
               <div className="relative">
@@ -132,9 +129,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, waterMlPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full px-3.5 py-2.5 text-sm bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl font-bold tabular-nums text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs text-stone-400 font-medium">
+                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
                   ml
                 </span>
               </div>
@@ -142,8 +139,8 @@ export function SettingsView() {
 
             {/* Calories Consumed Reference */}
             <div>
-              <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider mb-1">
-                Calories Consumed Target (Reference)
+              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+                Calorie Intake Reference (kcal)
               </label>
               <div className="relative">
                 <input
@@ -158,33 +155,33 @@ export function SettingsView() {
                       caloriesConsumedKcalPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className="w-full px-3.5 py-2.5 text-sm bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl font-bold tabular-nums text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs text-stone-400 font-medium">
+                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
                   kcal
                 </span>
               </div>
-              <p className="mt-1 text-[11px] text-stone-400">
+              <p className="mt-1 text-[11px] text-zinc-500">
                 Informational intake benchmark only.
               </p>
             </div>
 
             {/* Workout Minutes Target & Toggle */}
             <div>
-              <div className="flex items-center justify-between mb-1">
-                <label className="block text-xs font-bold text-stone-700 dark:text-stone-300 uppercase tracking-wider">
-                  Workout Minutes Target
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                  Workout Target (Minutes)
                 </label>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-stone-600 dark:text-stone-400">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-emerald-400">
                   <input
                     type="checkbox"
                     checked={goalsState.workoutGoalEnabled}
                     onChange={(e) =>
                       setGoalsState({ ...goalsState, workoutGoalEnabled: e.target.checked })
                     }
-                    className="rounded border-stone-300 text-emerald-600 focus:ring-emerald-500"
+                    className="rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500"
                   />
-                  <span>Track Goal</span>
+                  <span>Track Workout Goal</span>
                 </label>
               </div>
               <div className="relative">
@@ -201,11 +198,11 @@ export function SettingsView() {
                       workoutMinutesPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className={`w-full px-3.5 py-2.5 text-sm bg-stone-50 dark:bg-stone-800 border border-stone-300 dark:border-stone-700 rounded-xl font-bold tabular-nums text-stone-900 dark:text-stone-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
-                    !goalsState.workoutGoalEnabled ? "opacity-50 cursor-not-allowed" : ""
+                  className={`w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
+                    !goalsState.workoutGoalEnabled ? "opacity-30 cursor-not-allowed" : ""
                   }`}
                 />
-                <span className="absolute right-3.5 top-2.5 text-xs text-stone-400 font-medium">
+                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
                   mins
                 </span>
               </div>
@@ -215,9 +212,9 @@ export function SettingsView() {
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="flex items-center gap-1.5 px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs sm:text-sm font-bold rounded-2xl shadow-xs transition-colors"
+              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
             >
-              <Check className="w-4 h-4" />
+              <Check className="w-4 h-4 stroke-[3]" />
               <span>Update Targets</span>
             </button>
           </div>
@@ -225,32 +222,32 @@ export function SettingsView() {
       </div>
 
       {/* Data Export & Backup */}
-      <div className="bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
         <div>
-          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
-            Export & Backup
+          <h2 className="text-base font-bold text-white tracking-tight">
+            Data Portability & Backups
           </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            You own 100% of your data. Download offline JSON or CSV records anytime.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            You own 100% of your data. Export your entire database offline as JSON or spreadsheet CSV.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
           {/* JSON Export */}
           <button
             onClick={exportJSON}
-            className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 hover:bg-stone-100 dark:bg-stone-850 dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-left transition-all"
+            className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-emerald-500/40 text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 <Download className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-stone-900 dark:text-stone-100 block">
+                <span className="text-sm font-bold text-white block group-hover:text-emerald-300 transition-colors">
                   Export JSON Backup
                 </span>
-                <span className="text-xs text-stone-400">
-                  Full data model including habits and settings
+                <span className="text-xs text-zinc-500">
+                  Full state including habits and targets
                 </span>
               </div>
             </div>
@@ -259,17 +256,17 @@ export function SettingsView() {
           {/* CSV Export */}
           <button
             onClick={exportCSV}
-            className="flex items-center justify-between p-4 rounded-2xl bg-stone-50 hover:bg-stone-100 dark:bg-stone-850 dark:hover:bg-stone-800 border border-stone-200/80 dark:border-stone-700 text-left transition-all"
+            className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-sky-500/40 text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-sky-100 dark:bg-sky-950 text-sky-700 dark:text-sky-300">
+              <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
                 <FileSpreadsheet className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-stone-900 dark:text-stone-100 block">
+                <span className="text-sm font-bold text-white block group-hover:text-sky-300 transition-colors">
                   Export Activity CSV
                 </span>
-                <span className="text-xs text-stone-400">
+                <span className="text-xs text-zinc-500">
                   Spreadsheet friendly: steps, water, workouts
                 </span>
               </div>
@@ -278,18 +275,18 @@ export function SettingsView() {
         </div>
 
         {/* Import JSON */}
-        <div className="pt-2">
-          <label className="flex items-center justify-between p-4 rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 hover:border-emerald-500 cursor-pointer transition-colors bg-stone-50/50 dark:bg-stone-850/50">
+        <div>
+          <label className="flex items-center justify-between p-4 rounded-2xl border border-dashed border-white/[0.12] hover:border-emerald-500/50 cursor-pointer transition-colors bg-white/[0.02]">
             <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-stone-200 dark:bg-stone-800 text-stone-700 dark:text-stone-300">
+              <div className="p-2.5 rounded-xl bg-zinc-800 text-zinc-300">
                 <Upload className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-stone-900 dark:text-stone-100 block">
+                <span className="text-sm font-bold text-white block">
                   Restore from JSON Backup
                 </span>
-                <span className="text-xs text-stone-400">
-                  Select a previously exported SYDD JSON file
+                <span className="text-xs text-zinc-500">
+                  Select a previously exported SYDD JSON backup
                 </span>
               </div>
             </div>
@@ -299,13 +296,13 @@ export function SettingsView() {
               onChange={handleFileImport}
               className="hidden"
             />
-            <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 px-3 py-1.5 rounded-xl bg-white dark:bg-stone-800 border border-stone-200 dark:border-stone-700">
+            <span className="text-xs font-mono font-bold text-emerald-400 px-3.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.1]">
               Browse File
             </span>
           </label>
 
           {importError && (
-            <div className="mt-2 p-2.5 rounded-xl bg-rose-50 dark:bg-rose-950/50 text-rose-700 dark:text-rose-300 text-xs flex items-center gap-2">
+            <div className="mt-2.5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{importError}</span>
             </div>
@@ -314,46 +311,46 @@ export function SettingsView() {
       </div>
 
       {/* Demo Data & Danger Zone */}
-      <div className="bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800 rounded-3xl p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
         <div>
-          <h2 className="text-base font-bold text-stone-900 dark:text-stone-100">
-            Sample Data & Reset
+          <h2 className="text-base font-bold text-white tracking-tight">
+            Sample Data & Factory Reset
           </h2>
-          <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-            Load sample activity to test the heatmap or wipe local storage.
+          <p className="text-xs text-zinc-400 mt-0.5">
+            Load realistic sample activity to test the heatmap or wipe local device data.
           </p>
         </div>
 
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <button
             onClick={loadDemoData}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-800 dark:text-stone-200 text-xs font-bold transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-white/[0.04] hover:bg-emerald-500/15 border border-white/[0.08] hover:border-emerald-500/30 text-white text-xs font-bold transition-all cursor-pointer active:scale-95"
           >
-            <Sparkles className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Load Sample 45-Day Activity</span>
+            <Sparkles className="w-4 h-4 text-emerald-400" />
+            <span>Load 45-Day Realistic Sample</span>
           </button>
 
           <button
             onClick={() => setIsConfirmClearOpen(true)}
-            className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-2xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 text-xs font-bold transition-colors"
+            className="flex-1 flex items-center justify-center gap-2 px-5 py-3 rounded-2xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-300 border border-rose-500/20 hover:border-rose-500/40 text-xs font-bold transition-all cursor-pointer active:scale-95"
           >
             <Trash2 className="w-4 h-4" />
-            <span>Clear All Local Data</span>
+            <span>Clear All Stored Data</span>
           </button>
         </div>
       </div>
 
       {/* Privacy & Health Notice */}
-      <div className="p-4 rounded-2xl bg-stone-100/70 dark:bg-stone-850/70 border border-stone-200 dark:border-stone-800 text-xs text-stone-500 dark:text-stone-400 space-y-2">
-        <div className="flex items-center gap-2 font-bold text-stone-700 dark:text-stone-300">
-          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-          <span>Local Storage & Health Disclaimer</span>
+      <div className="p-5 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-500 space-y-2">
+        <div className="flex items-center gap-2 font-bold text-zinc-300">
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <span>Privacy & Wellness Disclaimer</span>
         </div>
         <p className="leading-relaxed">
-          <strong>Local-first:</strong> SYDD stores all information inside your browser&apos;s localStorage on this device. No external analytics, tracking pixels, or remote database services are connected.
+          <strong>Local-First:</strong> SYDD stores all data inside your browser&apos;s localStorage on this device. No remote databases, telemetry, or external network requests are made.
         </p>
         <p className="leading-relaxed">
-          <strong>Wellness tool:</strong> SYDD is a personal habit and consistency tracker. It does not measure steps automatically via hardware sensors and does not provide medical, diagnostic, or nutritional recommendations.
+          <strong>Non-Medical:</strong> SYDD is a personal habit and consistency tracker. It does not measure physical steps automatically through hardware sensors and does not provide clinical or medical advice.
         </p>
       </div>
 

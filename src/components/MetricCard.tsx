@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { Check, Footprints, Flame, Droplet, Dumbbell, Plus, Edit2 } from "lucide-react";
+import { Check, Footprints, Flame, Droplet, Dumbbell, Plus, Edit3 } from "lucide-react";
 
 type MetricCardProps = {
   title: string;
@@ -33,44 +33,78 @@ export function MetricCard({
   const percentage =
     target && target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
 
-  const getIcon = () => {
+  // Visual themes per metric type
+  const getTheme = () => {
     switch (type) {
       case "steps":
-        return <Footprints className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />;
+        return {
+          icon: Footprints,
+          iconColor: "text-emerald-400",
+          iconBg: "bg-emerald-500/10 border-emerald-500/20",
+          glowBar: "bg-gradient-to-r from-emerald-500 to-teal-400 shadow-sm shadow-emerald-500/40",
+          badgeBg: "bg-emerald-500/10 text-emerald-400 border-emerald-500/20",
+          accentColor: "#10b981",
+        };
       case "calories":
-        return <Flame className="w-4 h-4 text-amber-600 dark:text-amber-400" />;
+        return {
+          icon: Flame,
+          iconColor: "text-amber-400",
+          iconBg: "bg-amber-500/10 border-amber-500/20",
+          glowBar: "bg-gradient-to-r from-amber-500 to-orange-400 shadow-sm shadow-amber-500/40",
+          badgeBg: "bg-amber-500/10 text-amber-400 border-amber-500/20",
+          accentColor: "#f59e0b",
+        };
       case "water":
-        return <Droplet className="w-4 h-4 text-sky-600 dark:text-sky-400" />;
+        return {
+          icon: Droplet,
+          iconColor: "text-sky-400",
+          iconBg: "bg-sky-500/10 border-sky-500/20",
+          glowBar: "bg-gradient-to-r from-sky-500 to-cyan-400 shadow-sm shadow-sky-500/40",
+          badgeBg: "bg-sky-500/10 text-sky-400 border-sky-500/20",
+          accentColor: "#0ea5e9",
+        };
       case "workout":
-        return <Dumbbell className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />;
+        return {
+          icon: Dumbbell,
+          iconColor: "text-indigo-400",
+          iconBg: "bg-indigo-500/10 border-indigo-500/20",
+          glowBar: "bg-gradient-to-r from-indigo-500 to-purple-400 shadow-sm shadow-indigo-500/40",
+          badgeBg: "bg-indigo-500/10 text-indigo-400 border-indigo-500/20",
+          accentColor: "#6366f1",
+        };
     }
   };
 
-  const getProgressBarColor = () => {
-    if (type === "calories") {
-      return "bg-amber-500 dark:bg-amber-400";
-    }
-    if (isGoalMet) {
-      return "bg-emerald-500 dark:bg-emerald-400";
-    }
-    return "bg-emerald-600 dark:bg-emerald-500";
-  };
+  const theme = getTheme();
+  const Icon = theme.icon;
+
+  // Circular gauge calculations
+  const strokeWidth = 4;
+  const radius = 20;
+  const circumference = 2 * Math.PI * radius;
+  const strokeDashoffset = circumference - (percentage / 100) * circumference;
 
   return (
-    <div className="bg-white dark:bg-stone-900 border border-stone-200/90 dark:border-stone-800 rounded-2xl p-4 sm:p-5 flex flex-col justify-between shadow-xs hover:border-stone-300 dark:hover:border-stone-700 transition-all">
+    <div className="glass-card glass-card-interactive rounded-3xl p-5 flex flex-col justify-between group relative overflow-hidden">
+      {/* Background ambient gradient glow */}
+      <div
+        className="absolute -top-12 -right-12 w-32 h-32 rounded-full blur-2xl opacity-15 pointer-events-none transition-opacity duration-300 group-hover:opacity-30"
+        style={{ backgroundColor: theme.accentColor }}
+      />
+
       {/* Top Header */}
       <div>
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-xl bg-stone-100 dark:bg-stone-800">
-              {getIcon()}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className={`p-2.5 rounded-2xl border ${theme.iconBg} ${theme.iconColor}`}>
+              <Icon className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-xs font-bold tracking-tight text-stone-500 dark:text-stone-400 uppercase">
+              <h3 className="text-xs font-bold tracking-wider text-zinc-400 uppercase font-mono">
                 {title}
               </h3>
               {type === "calories" && (
-                <span className="text-[10px] text-stone-400 dark:text-stone-500 font-medium">
+                <span className="text-[10px] text-zinc-500 font-medium">
                   Informational intake
                 </span>
               )}
@@ -79,7 +113,7 @@ export function MetricCard({
 
           <div className="flex items-center gap-1.5">
             {isGoalMet && (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full shadow-xs">
                 <Check className="w-3 h-3 stroke-[3]" />
                 Goal met
               </span>
@@ -87,55 +121,82 @@ export function MetricCard({
             <button
               onClick={onEdit}
               aria-label={`Edit ${title}`}
-              className="p-1.5 text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-lg transition-colors"
+              className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] rounded-xl transition-colors cursor-pointer"
             >
-              <Edit2 className="w-3.5 h-3.5" />
+              <Edit3 className="w-3.5 h-3.5" />
             </button>
           </div>
         </div>
 
-        {/* Current Metric Value */}
-        <div className="mt-3 flex items-baseline gap-1.5">
-          {hasData ? (
-            <>
-              <span className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-stone-900 dark:text-stone-100">
-                {value.toLocaleString()}
-              </span>
-              <span className="text-xs sm:text-sm font-medium text-stone-500 dark:text-stone-400">
-                {unit}
-              </span>
-            </>
-          ) : (
+        {/* Current Metric Value with Circular Mini Gauge */}
+        <div className="mt-4 flex items-center justify-between">
+          <div>
             <div className="flex items-baseline gap-1.5">
-              <span className="text-xl sm:text-2xl font-bold text-stone-400 dark:text-stone-600">
-                —
-              </span>
-              <span className="text-xs text-stone-400 dark:text-stone-500 italic">
-                (not logged today)
-              </span>
+              {hasData ? (
+                <>
+                  <span className="text-3xl font-black font-mono tracking-tight text-white tabular-nums">
+                    {value.toLocaleString()}
+                  </span>
+                  <span className="text-xs font-semibold text-zinc-400">
+                    {unit}
+                  </span>
+                </>
+              ) : (
+                <div className="flex items-baseline gap-2">
+                  <span className="text-2xl font-bold text-zinc-600 font-mono">
+                    —
+                  </span>
+                  <span className="text-xs text-zinc-500 italic">
+                    Not logged
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {target !== undefined && target > 0 && (
+              <p className="text-xs text-zinc-400 mt-1 font-medium">
+                Target: <strong className="text-zinc-200 font-mono font-bold">{target.toLocaleString()} {unit}</strong>
+              </p>
+            )}
+          </div>
+
+          {/* Mini Circular Gauge (only if target > 0) */}
+          {target !== undefined && target > 0 && hasData && (
+            <div className="relative w-12 h-12 shrink-0">
+              <svg className="w-full h-full transform -rotate-90" viewBox="0 0 48 48">
+                <circle
+                  cx="24"
+                  cy="24"
+                  r={radius}
+                  className="stroke-white/[0.08]"
+                  strokeWidth={strokeWidth}
+                  fill="transparent"
+                />
+                <circle
+                  cx="24"
+                  cy="24"
+                  r={radius}
+                  stroke={theme.accentColor}
+                  strokeWidth={strokeWidth}
+                  strokeDasharray={circumference}
+                  strokeDashoffset={strokeDashoffset}
+                  strokeLinecap="round"
+                  fill="transparent"
+                  className="transition-all duration-700 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-[10px] font-mono font-bold text-white">
+                {percentage}%
+              </div>
             </div>
           )}
         </div>
 
-        {/* Target and remaining progress */}
+        {/* Shimmering Progress Bar */}
         {target !== undefined && target > 0 && (
-          <div className="mt-2 flex items-center justify-between text-xs text-stone-500 dark:text-stone-400 font-medium">
-            <span>
-              Target: <strong className="text-stone-700 dark:text-stone-300">{target.toLocaleString()} {unit}</strong>
-            </span>
-            {hasData && (
-              <span className="tabular-nums font-semibold text-stone-600 dark:text-stone-300">
-                {percentage}%
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Progress Bar */}
-        {target !== undefined && target > 0 && (
-          <div className="mt-2.5 h-2 w-full bg-stone-100 dark:bg-stone-800 rounded-full overflow-hidden">
+          <div className="mt-3 h-2 w-full bg-white/[0.06] rounded-full overflow-hidden p-0.5 border border-white/[0.04]">
             <div
-              className={`h-full transition-all duration-500 ease-out rounded-full ${getProgressBarColor()}`}
+              className={`h-full rounded-full transition-all duration-500 ease-out shimmer-bar ${theme.glowBar}`}
               style={{ width: `${percentage}%` }}
               role="progressbar"
               aria-valuenow={value}
@@ -146,7 +207,7 @@ export function MetricCard({
         )}
 
         {subtitle && (
-          <p className="mt-2 text-xs text-stone-500 dark:text-stone-400">
+          <p className="mt-2 text-xs text-zinc-500">
             {subtitle}
           </p>
         )}
@@ -154,14 +215,14 @@ export function MetricCard({
 
       {/* Quick Add Actions */}
       {quickAddOptions && quickAddOptions.length > 0 && onQuickAdd && (
-        <div className="mt-4 pt-3 border-t border-stone-100 dark:border-stone-800/80 flex items-center gap-2">
+        <div className="mt-4 pt-3 border-t border-white/[0.06] flex items-center gap-2">
           {quickAddOptions.map((opt) => (
             <button
               key={opt.label}
               onClick={() => onQuickAdd(opt.amount)}
-              className="flex-1 py-1.5 px-2 bg-stone-50 hover:bg-emerald-50 dark:bg-stone-800/60 dark:hover:bg-emerald-950/40 border border-stone-200/80 dark:border-stone-700 hover:border-emerald-300 dark:hover:border-emerald-800 text-stone-700 hover:text-emerald-700 dark:text-stone-300 dark:hover:text-emerald-300 rounded-xl text-xs font-semibold transition-all active:scale-98 flex items-center justify-center gap-1"
+              className="flex-1 py-1.5 px-2 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/[0.08] hover:border-emerald-500/30 text-zinc-300 hover:text-emerald-300 rounded-xl text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
-              <Plus className="w-3 h-3" />
+              <Plus className="w-3 h-3 stroke-[3]" />
               <span>{opt.label}</span>
             </button>
           ))}

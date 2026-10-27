@@ -29,18 +29,18 @@ export function ConfirmDialog({
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-stone-900/60 backdrop-blur-xs animate-fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div
-        className="bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800 rounded-3xl max-w-sm w-full p-5 shadow-2xl space-y-4"
+        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="flex items-start gap-3">
+        <div className="flex items-start gap-3.5">
           <div
-            className={`p-2 rounded-xl shrink-0 ${
+            className={`p-2.5 rounded-2xl shrink-0 ${
               confirmVariant === "danger"
-                ? "bg-rose-50 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"
-                : "bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400"
+                ? "bg-rose-500/10 border border-rose-500/20 text-rose-400"
+                : "bg-amber-500/10 border border-amber-500/20 text-amber-400"
             }`}
           >
             <AlertTriangle className="w-5 h-5" />
@@ -48,31 +48,31 @@ export function ConfirmDialog({
           <div>
             <h3
               id="confirm-dialog-title"
-              className="text-base font-bold text-stone-900 dark:text-stone-100"
+              className="text-base font-bold text-white tracking-tight"
             >
               {title}
             </h3>
-            <p className="mt-1 text-xs text-stone-600 dark:text-stone-300 leading-relaxed">
+            <p className="mt-1.5 text-xs text-zinc-400 leading-relaxed">
               {message}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2">
+        <div className="flex items-center justify-end gap-2.5 pt-3">
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-xs font-semibold text-stone-600 dark:text-stone-300 hover:bg-stone-100 dark:hover:bg-stone-800 rounded-xl transition-colors"
+            className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-4 py-2 text-xs font-bold rounded-xl text-white transition-colors shadow-xs ${
+            className={`px-5 py-2.5 text-xs font-bold rounded-2xl text-white transition-all shadow-lg cursor-pointer active:scale-95 ${
               confirmVariant === "danger"
-                ? "bg-rose-600 hover:bg-rose-700"
-                : "bg-emerald-600 hover:bg-emerald-700"
+                ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/30"
+                : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30 text-zinc-950"
             }`}
           >
             {confirmLabel}

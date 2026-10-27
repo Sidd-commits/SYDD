@@ -17,30 +17,30 @@ export function ToastContainer() {
       {toasts.map((toast) => (
         <div
           key={toast.id}
-          className={`pointer-events-auto flex items-center justify-between gap-3 p-3.5 rounded-xl shadow-lg border text-sm animate-fade-in backdrop-blur-md ${
+          className={`pointer-events-auto flex items-center justify-between gap-3 p-4 rounded-2xl shadow-2xl border text-xs sm:text-sm animate-fade-in backdrop-blur-xl ${
             toast.type === "success"
-              ? "bg-white/95 dark:bg-stone-900/95 border-emerald-500/30 text-stone-900 dark:text-stone-100"
+              ? "bg-[#0e1017]/95 border-emerald-500/40 text-white shadow-emerald-500/10"
               : toast.type === "error"
-              ? "bg-rose-50/95 dark:bg-rose-950/95 border-rose-500/30 text-rose-900 dark:text-rose-100"
-              : "bg-white/95 dark:bg-stone-900/95 border-stone-200 dark:border-stone-800 text-stone-900 dark:text-stone-100"
+              ? "bg-[#18080a]/95 border-rose-500/40 text-white shadow-rose-500/10"
+              : "bg-[#0e1017]/95 border-white/10 text-white"
           }`}
         >
-          <div className="flex items-center gap-2.5 min-w-0">
+          <div className="flex items-center gap-3 min-w-0">
             {toast.type === "success" && (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+              <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
             )}
             {toast.type === "error" && (
-              <AlertCircle className="w-4 h-4 text-rose-600 dark:text-rose-400 shrink-0" />
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
             )}
             {toast.type === "info" && (
-              <Info className="w-4 h-4 text-stone-500 dark:text-stone-400 shrink-0" />
+              <Info className="w-4 h-4 text-zinc-400 shrink-0" />
             )}
-            <span className="truncate font-medium">{toast.message}</span>
+            <span className="truncate font-semibold">{toast.message}</span>
           </div>
           <button
             onClick={() => removeToast(toast.id)}
             aria-label="Dismiss notification"
-            className="p-1 text-stone-400 hover:text-stone-600 dark:hover:text-stone-200 transition-colors rounded-lg"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg transition-colors cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
