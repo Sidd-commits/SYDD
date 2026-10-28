@@ -1,0 +1,17 @@
+{
+  "name": "sydd-backend",
+  "version": "0.1.0",
+  "private": true,
+  "description": "SYDD Backend Service & Sync API",
+  "main": "dist/server.js",
+  "scripts": {
+    "dev": "node --import tsx src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "typescript": "^5.8.0"
+  }
+}

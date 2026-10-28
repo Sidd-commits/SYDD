@@ -108,8 +108,9 @@ function getDataSnapshot(): AppData {
   return cachedDataSnapshot;
 }
 
+const serverAppDataSnapshot: AppData = getDefaultAppData();
 function getServerDataSnapshot(): AppData {
-  return getDefaultAppData();
+  return serverAppDataSnapshot;
 }
 
 function emitDataChange(next: AppData) {
