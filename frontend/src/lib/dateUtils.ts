@@ -179,12 +179,22 @@ export function buildHeatmapWeeks(year: number, referenceToday?: ISODate): Heatm
 }
 
 /**
- * Returns past 7 days ending on today (for weekly recap).
+ * Returns past N days ending on referenceDate (e.g. 7, 14, 30 days).
  */
-export function getPast7Days(referenceDate: ISODate = getTodayISODate()): ISODate[] {
+export function getPastNDays(
+  referenceDate: ISODate = getTodayISODate(),
+  count: number = 7
+): ISODate[] {
   const dates: ISODate[] = [];
-  for (let i = 6; i >= 0; i--) {
+  for (let i = count - 1; i >= 0; i--) {
     dates.push(addDays(referenceDate, -i));
   }
   return dates;
+}
+
+/**
+ * Returns past 7 days ending on today (for weekly recap).
+ */
+export function getPast7Days(referenceDate: ISODate = getTodayISODate()): ISODate[] {
+  return getPastNDays(referenceDate, 7);
 }

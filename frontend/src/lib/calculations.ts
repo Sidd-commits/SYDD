@@ -1,5 +1,5 @@
 import { AppData, DailyRecord, DaySummary, Goals, Habit, HeatmapCell, ISODate, Workout } from "@/types";
-import { addDays, getPast7Days } from "./dateUtils";
+import { addDays, getPast7Days, getPastNDays, parseISODate } from "./dateUtils";
 
 /**
  * Returns the daily record for a date or undefined if none exists.
@@ -375,5 +375,265 @@ export function calculateWorkoutStats(workout: Workout): {
     completedSets,
     totalVolume: Math.round(totalVolume * 10) / 10,
     hasGranularSets: totalSets > 0,
+  };
+}
+
+export type RangeDataPoint = {
+  date: ISODate;
+  steps: number;
+  waterMl: number;
+  workoutMinutes: number;
+  workoutVolume: number;
+  score: number;
+  activeDay: boolean;
+  hasData: boolean;
+};
+
+export type RangeAnalytics = {
+  daysCount: number;
+  dataPoints: RangeDataPoint[];
+  totalSteps: number;
+  totalWaterMl: number;
+  totalWorkoutMinutes: number;
+  totalVolume: number;
+  activeDaysCount: number;
+  daysWithData: number;
+  avgSteps: number;
+  avgWaterMl: number;
+  avgVolume: number;
+  consistencyRate: number; // 0 to 100
+};
+
+/**
+ * Calculates rolling 7, 14, or 30 day analytics for trend visualizations.
+ */
+export function calculateRangeAnalytics(
+  data: AppData,
+  referenceDate: ISODate,
+  daysCount: 7 | 14 | 30 = 14
+): RangeAnalytics {
+  const dates = getPastNDays(referenceDate, daysCount);
+  let totalSteps = 0;
+  let stepsCount = 0;
+  let totalWaterMl = 0;
+  let waterCount = 0;
+  let totalWorkoutMinutes = 0;
+  let totalVolume = 0;
+  let activeDaysCount = 0;
+  let daysWithData = 0;
+
+  const dataPoints: RangeDataPoint[] = dates.map((date) => {
+    const summary = calculateDaySummary(data, date);
+    let dayVolume = 0;
+    summary.workouts.forEach((w) => {
+      const stats = calculateWorkoutStats(w);
+      dayVolume += stats.totalVolume;
+    });
+
+    if (summary.hasData) {
+      daysWithData++;
+      if (summary.steps > 0) {
+        totalSteps += summary.steps;
+        stepsCount++;
+      }
+      if (summary.waterMl > 0) {
+        totalWaterMl += summary.waterMl;
+        waterCount++;
+      }
+    }
+
+    totalWorkoutMinutes += summary.workoutMinutes;
+    totalVolume += dayVolume;
+    if (summary.activeDay) {
+      activeDaysCount++;
+    }
+
+    return {
+      date,
+      steps: summary.steps,
+      waterMl: summary.waterMl,
+      workoutMinutes: summary.workoutMinutes,
+      workoutVolume: Math.round(dayVolume * 10) / 10,
+      score: summary.score >= 0 ? summary.score : 0,
+      activeDay: summary.activeDay,
+      hasData: summary.hasData,
+    };
+  });
+
+  return {
+    daysCount,
+    dataPoints,
+    totalSteps,
+    totalWaterMl,
+    totalWorkoutMinutes,
+    totalVolume: Math.round(totalVolume * 10) / 10,
+    activeDaysCount,
+    daysWithData,
+    avgSteps: stepsCount > 0 ? Math.round(totalSteps / stepsCount) : 0,
+    avgWaterMl: waterCount > 0 ? Math.round(totalWaterMl / waterCount) : 0,
+    avgVolume: daysWithData > 0 ? Math.round(totalVolume / daysWithData) : 0,
+    consistencyRate: Math.round((activeDaysCount / daysCount) * 100),
+  };
+}
+
+export type ExercisePR = {
+  exerciseName: string;
+  maxWeight: number;
+  reps: number;
+  weightUnit: string;
+  date: ISODate;
+};
+
+export type PersonalRecords = {
+  maxStepsDay: { steps: number; date?: ISODate };
+  maxWaterDay: { waterMl: number; date?: ISODate };
+  maxWorkoutMinutes: { minutes: number; date?: ISODate };
+  maxSingleWorkoutVolume: { volume: number; date?: ISODate; type?: string };
+  exercisePRs: ExercisePR[];
+  bestStreak: number;
+  totalActiveDays: number;
+  totalAllTimeVolume: number;
+};
+
+/**
+ * Computes all-time verified Personal Records (PRs) from actual stored history.
+ */
+export function calculatePersonalRecords(data: AppData, referenceDate?: ISODate): PersonalRecords {
+  const streaks = calculateStreaks(data, referenceDate);
+
+  let maxStepsDay = { steps: 0, date: undefined as ISODate | undefined };
+  let maxWaterDay = { waterMl: 0, date: undefined as ISODate | undefined };
+
+  data.dailyRecords.forEach((r) => {
+    if (r.steps && r.steps > maxStepsDay.steps) {
+      maxStepsDay = { steps: r.steps, date: r.date };
+    }
+    if (r.waterMl && r.waterMl > maxWaterDay.waterMl) {
+      maxWaterDay = { waterMl: r.waterMl, date: r.date };
+    }
+  });
+
+  let maxWorkoutMinutes = { minutes: 0, date: undefined as ISODate | undefined };
+  let maxSingleWorkoutVolume = {
+    volume: 0,
+    date: undefined as ISODate | undefined,
+    type: undefined as string | undefined,
+  };
+  let totalAllTimeVolume = 0;
+
+  const exercisePRMap = new Map<
+    string,
+    { maxWeight: number; reps: number; weightUnit: string; date: ISODate }
+  >();
+
+  data.workouts.forEach((w) => {
+    if (w.durationMinutes > maxWorkoutMinutes.minutes) {
+      maxWorkoutMinutes = { minutes: w.durationMinutes, date: w.date };
+    }
+
+    const stats = calculateWorkoutStats(w);
+    totalAllTimeVolume += stats.totalVolume;
+
+    if (stats.totalVolume > maxSingleWorkoutVolume.volume) {
+      maxSingleWorkoutVolume = { volume: stats.totalVolume, date: w.date, type: w.type };
+    }
+
+    (w.exercises || []).forEach((ex) => {
+      (ex.sets || []).forEach((s) => {
+        if (s.completed && typeof s.weight === "number" && s.weight > 0) {
+          const current = exercisePRMap.get(ex.name);
+          if (
+            !current ||
+            s.weight > current.maxWeight ||
+            (s.weight === current.maxWeight && s.reps > current.reps)
+          ) {
+            exercisePRMap.set(ex.name, {
+              maxWeight: s.weight,
+              reps: s.reps,
+              weightUnit: s.weightUnit || "kg",
+              date: w.date,
+            });
+          }
+        }
+      });
+    });
+  });
+
+  const exercisePRs: ExercisePR[] = Array.from(exercisePRMap.entries())
+    .map(([exerciseName, pr]) => ({
+      exerciseName,
+      maxWeight: pr.maxWeight,
+      reps: pr.reps,
+      weightUnit: pr.weightUnit,
+      date: pr.date,
+    }))
+    .sort((a, b) => b.maxWeight - a.maxWeight);
+
+  return {
+    maxStepsDay,
+    maxWaterDay,
+    maxWorkoutMinutes,
+    maxSingleWorkoutVolume,
+    exercisePRs,
+    bestStreak: streaks.bestStreak,
+    totalActiveDays: streaks.totalActiveDays,
+    totalAllTimeVolume: Math.round(totalAllTimeVolume * 10) / 10,
+  };
+}
+
+export type MonthlySummary = {
+  monthName: string;
+  activeDays: number;
+  totalDaysInMonth: number;
+  totalDaysSoFar: number;
+  consistencyPercent: number;
+  totalSteps: number;
+  totalWorkouts: number;
+  totalVolume: number;
+};
+
+/**
+ * Calculates current month summary metrics based on actual history.
+ */
+export function calculateMonthlySummary(data: AppData, referenceDate: ISODate): MonthlySummary {
+  const d = parseISODate(referenceDate);
+  const year = d.getFullYear();
+  const month = d.getMonth();
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+
+  const monthName = d.toLocaleDateString("en-US", { month: "long", year: "numeric" });
+  const totalDaysInMonth = new Date(year, month + 1, 0).getDate();
+  const totalDaysSoFar = Math.min(totalDaysInMonth, d.getDate());
+
+  let activeDays = 0;
+  let totalSteps = 0;
+  let totalWorkouts = 0;
+  let totalVolume = 0;
+
+  for (let day = 1; day <= totalDaysSoFar; day++) {
+    const iso = `${monthPrefix}-${String(day).padStart(2, "0")}`;
+    const summary = calculateDaySummary(data, iso);
+    if (summary.activeDay) {
+      activeDays++;
+    }
+    totalSteps += summary.steps;
+    totalWorkouts += summary.workouts.length;
+    summary.workouts.forEach((w) => {
+      totalVolume += calculateWorkoutStats(w).totalVolume;
+    });
+  }
+
+  const consistencyPercent =
+    totalDaysSoFar > 0 ? Math.round((activeDays / totalDaysSoFar) * 100) : 0;
+
+  return {
+    monthName,
+    activeDays,
+    totalDaysInMonth,
+    totalDaysSoFar,
+    consistencyPercent,
+    totalSteps,
+    totalWorkouts,
+    totalVolume: Math.round(totalVolume * 10) / 10,
   };
 }

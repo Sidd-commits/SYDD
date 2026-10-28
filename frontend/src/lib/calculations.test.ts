@@ -4,6 +4,9 @@ import { AppData } from "@/types";
 import {
   calculateDaySummary,
   calculateHeatmapCell,
+  calculateMonthlySummary,
+  calculatePersonalRecords,
+  calculateRangeAnalytics,
   calculateStreaks,
   calculateWeeklyRecap,
   calculateWorkoutStats,
@@ -212,4 +215,122 @@ test("calculateWorkoutStats accurately calculates total exercises, sets, and vol
   assert.strictEqual(granularStats.completedSets, 3);
   // Volume: (60 * 10) + (70 * 8) = 600 + 560 = 1160 kg
   assert.strictEqual(granularStats.totalVolume, 1160);
+});
+
+test("calculateRangeAnalytics computes 14-day and 30-day metrics and volume curves accurately", () => {
+  const data = createMockData();
+  const refDate = "2026-10-28";
+
+  // Add 14 days of data
+  data.dailyRecords.push(
+    { date: "2026-10-27", steps: 8000, waterMl: 2000, updatedAt: "" },
+    { date: "2026-10-28", steps: 12000, waterMl: 3000, updatedAt: "" }
+  );
+
+  data.workouts.push({
+    id: "w-range-1",
+    date: "2026-10-28",
+    type: "strength",
+    durationMinutes: 45,
+    exercises: [
+      {
+        id: "ex-1",
+        name: "Barbell Squat",
+        sets: [
+          { id: "s-1", setNumber: 1, reps: 5, weight: 100, weightUnit: "kg", completed: true }, // 500 kg
+        ],
+      },
+    ],
+    createdAt: "",
+    updatedAt: "",
+  });
+
+  const range14 = calculateRangeAnalytics(data, refDate, 14);
+  assert.strictEqual(range14.daysCount, 14);
+  assert.strictEqual(range14.dataPoints.length, 14);
+  assert.strictEqual(range14.totalSteps, 20000); // 8000 + 12000
+  assert.strictEqual(range14.totalVolume, 500);
+  assert.strictEqual(range14.activeDaysCount, 2);
+  assert.strictEqual(range14.consistencyRate, Math.round((2 / 14) * 100)); // 14%
+
+  const range30 = calculateRangeAnalytics(data, refDate, 30);
+  assert.strictEqual(range30.daysCount, 30);
+  assert.strictEqual(range30.dataPoints.length, 30);
+  assert.strictEqual(range30.totalSteps, 20000);
+  assert.strictEqual(range30.consistencyRate, Math.round((2 / 30) * 100)); // 7%
+});
+
+test("calculatePersonalRecords extracts peak steps, maximum volume, and top exercise lifts", () => {
+  const data = createMockData();
+
+  data.dailyRecords.push(
+    { date: "2026-10-15", steps: 15400, waterMl: 3200, updatedAt: "" },
+    { date: "2026-10-20", steps: 8000, waterMl: 2000, updatedAt: "" }
+  );
+
+  data.workouts.push(
+    {
+      id: "w-pr-1",
+      date: "2026-10-18",
+      type: "strength",
+      durationMinutes: 60,
+      exercises: [
+        {
+          id: "ex-bench",
+          name: "Barbell Bench Press",
+          sets: [
+            { id: "s-1", setNumber: 1, reps: 5, weight: 80, weightUnit: "kg", completed: true }, // 80 kg PR
+            { id: "s-2", setNumber: 2, reps: 3, weight: 90, weightUnit: "kg", completed: true }, // 90 kg PR
+          ],
+        },
+      ],
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "w-pr-2",
+      date: "2026-10-22",
+      type: "strength",
+      durationMinutes: 45,
+      exercises: [
+        {
+          id: "ex-squat",
+          name: "Barbell Back Squat",
+          sets: [
+            { id: "s-3", setNumber: 1, reps: 5, weight: 120, weightUnit: "kg", completed: true }, // 120 kg PR
+          ],
+        },
+      ],
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  const prs = calculatePersonalRecords(data, "2026-10-28");
+  assert.strictEqual(prs.maxStepsDay.steps, 15400);
+  assert.strictEqual(prs.maxStepsDay.date, "2026-10-15");
+  assert.strictEqual(prs.maxWaterDay.waterMl, 3200);
+
+  // Exercise PRs should rank Squat (120kg) then Bench Press (90kg)
+  assert.strictEqual(prs.exercisePRs.length, 2);
+  assert.strictEqual(prs.exercisePRs[0].exerciseName, "Barbell Back Squat");
+  assert.strictEqual(prs.exercisePRs[0].maxWeight, 120);
+  assert.strictEqual(prs.exercisePRs[1].exerciseName, "Barbell Bench Press");
+  assert.strictEqual(prs.exercisePRs[1].maxWeight, 90);
+});
+
+test("calculateMonthlySummary computes month-to-date totals without inventing data", () => {
+  const data = createMockData();
+  const refDate = "2026-10-10";
+
+  data.dailyRecords.push(
+    { date: "2026-10-01", steps: 8000, waterMl: 2000, updatedAt: "" },
+    { date: "2026-10-05", steps: 10000, waterMl: 2500, updatedAt: "" }
+  );
+
+  const monthly = calculateMonthlySummary(data, refDate);
+  assert.strictEqual(monthly.totalDaysSoFar, 10);
+  assert.strictEqual(monthly.activeDays, 2);
+  assert.strictEqual(monthly.totalSteps, 18000);
+  assert.strictEqual(monthly.consistencyPercent, 20); // 2/10 = 20%
 });

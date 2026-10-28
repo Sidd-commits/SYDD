@@ -7,7 +7,7 @@ import { formatDisplayDate } from "@/lib/dateUtils";
 import { MetricCard } from "@/components/MetricCard";
 import { HabitsChecklist } from "@/components/HabitsChecklist";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
-import { WeeklyRecap } from "@/components/WeeklyRecap";
+import { FitnessAnalytics } from "@/components/FitnessAnalytics";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
 import { Sparkles, Calendar } from "lucide-react";
 
@@ -117,8 +117,8 @@ export function OverviewView() {
       {/* Signature Contribution Heatmap */}
       <ActivityHeatmap />
 
-      {/* Weekly Analytics Recap */}
-      <WeeklyRecap />
+      {/* Fitness Analytics, 14/30-Day Trends & Personal Records */}
+      <FitnessAnalytics />
     </div>
   );
 }

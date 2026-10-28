@@ -133,3 +133,4 @@ export function searchExercises(
 export function getExerciseById(id: string): ExerciseDefinition | undefined {
   return EXERCISE_CATALOG.find((e) => e.id === id);
 }
+

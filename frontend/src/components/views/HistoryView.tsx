@@ -5,6 +5,7 @@ import { useApp } from "@/context/AppContext";
 import { calculateDaySummary } from "@/lib/calculations";
 import { formatDisplayDate } from "@/lib/dateUtils";
 import { ISODate } from "@/types";
+import { FitnessAnalytics } from "@/components/FitnessAnalytics";
 import {
   Calendar,
   Footprints,
@@ -13,10 +14,13 @@ import {
   CheckCircle2,
   Plus,
   ArrowRight,
+  TrendingUp,
+  ListOrdered,
 } from "lucide-react";
 
 export function HistoryView() {
   const { appData, openDayDetail, openQuickLog, today } = useApp();
+  const [viewTab, setViewTab] = useState<"logs" | "analytics">("logs");
   const [filterMode, setFilterMode] = useState<"all" | "active">("all");
   const [searchDate, setSearchDate] = useState("");
 
@@ -66,8 +70,40 @@ export function HistoryView() {
         </button>
       </div>
 
-      {/* Filter and search controls */}
-      <div className="p-3 bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-inner">
+      {/* Sub-view switcher */}
+      <div className="flex items-center gap-1.5 p-1 bg-zinc-900/80 border border-white/[0.08] rounded-2xl w-fit">
+        <button
+          type="button"
+          onClick={() => setViewTab("logs")}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            viewTab === "logs"
+              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-xs"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          <ListOrdered className="w-3.5 h-3.5" />
+          <span>Daily Logs</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setViewTab("analytics")}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+            viewTab === "analytics"
+              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-xs"
+              : "text-zinc-400 hover:text-white"
+          }`}
+        >
+          <TrendingUp className="w-3.5 h-3.5" />
+          <span>Analytics & PRs</span>
+        </button>
+      </div>
+
+      {viewTab === "analytics" ? (
+        <FitnessAnalytics />
+      ) : (
+        <>
+          {/* Filter and search controls */}
+          <div className="p-3 bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-inner">
         <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl text-xs font-semibold">
           <button
             onClick={() => setFilterMode("all")}
@@ -221,6 +257,8 @@ export function HistoryView() {
             );
           })}
         </div>
+      )}
+        </>
       )}
     </div>
   );

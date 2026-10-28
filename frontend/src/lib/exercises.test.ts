@@ -43,3 +43,4 @@ test("getExerciseById finds exercise by valid slug and returns undefined for unk
   const unknown = getExerciseById("nonexistent-exercise-slug");
   assert.strictEqual(unknown, undefined);
 });
+
