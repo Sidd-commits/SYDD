@@ -4,6 +4,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateStreaks } from "@/lib/calculations";
 import { Flame, Plus } from "lucide-react";
+import { SyddLogo } from "./SyddLogo";
 
 export function Header() {
   const { appData, openQuickLog, today } = useApp();
@@ -14,13 +15,9 @@ export function Header() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-18 flex items-center justify-between gap-4">
         {/* Brand & Identity */}
         <div className="flex items-center gap-3.5">
-          <div className="relative group cursor-pointer">
+          <div className="relative group cursor-pointer" title="SYDD — Show up. Stack days.">
             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 to-teal-500 rounded-2xl blur-xs opacity-60 group-hover:opacity-100 transition duration-300" />
-            <div className="relative w-10 h-10 rounded-xl bg-gradient-to-b from-zinc-800 to-zinc-950 border border-emerald-500/30 text-white flex items-center justify-center font-black tracking-tight text-lg shadow-inner">
-              <span className="bg-gradient-to-br from-emerald-300 to-emerald-500 bg-clip-text text-transparent">
-                S
-              </span>
-            </div>
+            <SyddLogo className="relative w-10 h-10 rounded-xl shadow-lg border border-emerald-500/30 shrink-0" />
           </div>
 
           <div>
