@@ -39,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# ide & editor configs
+.vscode/
+.idea/
+opencode.jsonc
+*.log
+
+# local documentation & project briefs (kept strictly local)
+SYDD_Project_Brief/
+AGENTS.md
+*.md
+!README.md
