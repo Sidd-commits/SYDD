@@ -41,3 +41,4 @@ test("SyncController.handleSync accepts valid payloads and produces enriched met
   assert.strictEqual(result.recordsCount, 1);
   assert.ok(result.syncedAt);
 });
+

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { WorkoutExercise, WorkoutType } from "@/types";
 import { formatDisplayDate } from "@/lib/dateUtils";
@@ -47,6 +47,21 @@ function QuickLogModalContent() {
   const [workoutNotes, setWorkoutNotes] = useState("");
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeQuickLog();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = origOverflow;
+    };
+  }, [closeQuickLog]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

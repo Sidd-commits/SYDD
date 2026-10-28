@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateDaySummary, calculateWorkoutStats, isHabitCompleted } from "@/lib/calculations";
 import { formatDisplayDate } from "@/lib/dateUtils";
@@ -37,6 +37,21 @@ export function DayDetailModal() {
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
   const [expandedWorkouts, setExpandedWorkouts] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeDayDetail();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    const origOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = origOverflow;
+    };
+  }, [closeDayDetail]);
 
   if (!isDayDetailOpen) return null;
 
