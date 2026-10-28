@@ -4,7 +4,7 @@ import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateDaySummary, calculateWeeklyRecap } from "@/lib/calculations";
 import { formatDisplayDate, getPast7Days } from "@/lib/dateUtils";
-import { Footprints, Droplet, Dumbbell, CalendarCheck, TrendingUp } from "lucide-react";
+import { Footprints, Droplet, Dumbbell, CalendarCheck } from "lucide-react";
 
 export function WeeklyRecap() {
   const { appData, today, openDayDetail } = useApp();

@@ -139,7 +139,7 @@ export function buildHeatmapWeeks(year: number, referenceToday?: ISODate): Heatm
   gridEnd.setDate(gridEnd.getDate() + (6 - dec31DayOfWeek));
 
   const weeks: HeatmapWeek[] = [];
-  let current = new Date(gridStart);
+  const current = new Date(gridStart);
   let weekIndex = 0;
   let lastMonthSeen = -1;
 

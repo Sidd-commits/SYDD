@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { WorkoutType } from "@/types";
 import { formatDisplayDate } from "@/lib/dateUtils";
@@ -11,13 +11,18 @@ import {
   Droplet,
   Dumbbell,
   Check,
-  Plus,
   Calendar,
 } from "lucide-react";
 
 export function QuickLogModal() {
+  const { isQuickLogOpen, selectedDate, quickLogMetric } = useApp();
+  if (!isQuickLogOpen) return null;
+
+  return <QuickLogModalContent key={`${selectedDate}-${quickLogMetric}`} />;
+}
+
+function QuickLogModalContent() {
   const {
-    isQuickLogOpen,
     closeQuickLog,
     quickLogMetric,
     selectedDate,
@@ -32,37 +37,14 @@ export function QuickLogModal() {
   const [activeMetric, setActiveMetric] = useState<"steps" | "calories" | "water" | "workout">(quickLogMetric);
   const [logDate, setLogDate] = useState(selectedDate);
 
-  // Form states
-  const [stepsInput, setStepsInput] = useState("");
-  const [caloriesInput, setCaloriesInput] = useState("");
-  const [waterInput, setWaterInput] = useState("");
+  const initialRecord = appData.dailyRecords.find((r) => r.date === selectedDate);
+  const [stepsInput, setStepsInput] = useState(initialRecord?.steps !== undefined ? String(initialRecord.steps) : "");
+  const [caloriesInput, setCaloriesInput] = useState(initialRecord?.caloriesConsumedKcal !== undefined ? String(initialRecord.caloriesConsumedKcal) : "");
+  const [waterInput, setWaterInput] = useState(initialRecord?.waterMl !== undefined ? String(initialRecord.waterMl) : "");
   const [workoutType, setWorkoutType] = useState<WorkoutType>("walking");
   const [workoutDuration, setWorkoutDuration] = useState("30");
   const [workoutNotes, setWorkoutNotes] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-
-  // Sync when opened
-  useEffect(() => {
-    if (isQuickLogOpen) {
-      setActiveMetric(quickLogMetric);
-      setLogDate(selectedDate);
-      setErrorMsg("");
-
-      // Preload existing values if any
-      const record = appData.dailyRecords.find((r) => r.date === selectedDate);
-      if (record) {
-        setStepsInput(record.steps !== undefined ? String(record.steps) : "");
-        setCaloriesInput(record.caloriesConsumedKcal !== undefined ? String(record.caloriesConsumedKcal) : "");
-        setWaterInput(record.waterMl !== undefined ? String(record.waterMl) : "");
-      } else {
-        setStepsInput("");
-        setCaloriesInput("");
-        setWaterInput("");
-      }
-    }
-  }, [isQuickLogOpen, quickLogMetric, selectedDate, appData]);
-
-  if (!isQuickLogOpen) return null;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

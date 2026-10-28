@@ -3,7 +3,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateStreaks } from "@/lib/calculations";
-import { Flame, Plus, ShieldCheck, Sparkles, Activity } from "lucide-react";
+import { Flame, Plus, ShieldCheck } from "lucide-react";
 
 export function Header() {
   const { appData, openQuickLog, today } = useApp();

@@ -13,7 +13,6 @@ import {
   CheckCircle2,
   Plus,
   ArrowRight,
-  Flame,
 } from "lucide-react";
 
 export function HistoryView() {

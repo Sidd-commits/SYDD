@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useApp } from "@/context/AppContext";
-import { Sparkles, ArrowRight, ShieldCheck, Flame } from "lucide-react";
+import { Sparkles, ArrowRight } from "lucide-react";
 
 export function OnboardingBanner() {
   const { appData, completeOnboarding, loadDemoData } = useApp();

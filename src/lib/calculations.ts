@@ -1,5 +1,5 @@
 import { AppData, DailyRecord, DaySummary, Goals, Habit, HeatmapCell, ISODate, Workout } from "@/types";
-import { addDays, getPast7Days, getTodayISODate } from "./dateUtils";
+import { addDays, getPast7Days } from "./dateUtils";
 
 /**
  * Returns the daily record for a date or undefined if none exists.
@@ -21,6 +21,7 @@ export function getWorkoutsForDate(data: AppData, date: ISODate): Workout[] {
  */
 export function getActiveHabitsForDate(data: AppData, date: ISODate): Habit[] {
   return data.habits.filter((h) => {
+    if (!h.active && !h.archivedAt) return false;
     const createdDate = h.createdAt.slice(0, 10);
     if (createdDate > date) return false;
     if (h.archivedAt) {

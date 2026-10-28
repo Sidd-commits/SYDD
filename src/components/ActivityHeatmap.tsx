@@ -13,18 +13,13 @@ import {
   Trophy,
   Calendar,
   CheckCircle2,
-  Sparkles,
 } from "lucide-react";
 
 export function ActivityHeatmap() {
   const { appData, openDayDetail, today } = useApp();
-  const [selectedYear, setSelectedYear] = useState(2026);
   const currentYear = parseInt(today.slice(0, 4), 10) || 2026;
-
-  React.useEffect(() => {
-    const y = parseInt(today.slice(0, 4), 10);
-    if (!isNaN(y)) setSelectedYear(y);
-  }, [today]);
+  const [userYear, setUserYear] = useState<number | null>(null);
+  const selectedYear = userYear ?? currentYear;
 
   const [hoveredCell, setHoveredCell] = useState<{
     date: ISODate;
@@ -112,7 +107,7 @@ export function ActivityHeatmap() {
         <div className="flex items-center gap-2 self-start sm:self-auto">
           <div className="flex items-center border border-white/[0.08] rounded-xl overflow-hidden text-xs font-semibold bg-zinc-900/80">
             <button
-              onClick={() => setSelectedYear((y) => y - 1)}
+              onClick={() => setUserYear((y) => (y ?? currentYear) - 1)}
               className="p-2 hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-colors cursor-pointer"
               aria-label="Previous Year"
             >
@@ -122,7 +117,7 @@ export function ActivityHeatmap() {
               {selectedYear}
             </span>
             <button
-              onClick={() => setSelectedYear((y) => Math.min(currentYear, y + 1))}
+              onClick={() => setUserYear((y) => Math.min(currentYear, (y ?? currentYear) + 1))}
               disabled={selectedYear >= currentYear}
               className={`p-2 transition-colors ${
                 selectedYear >= currentYear

@@ -148,3 +148,15 @@ test("weekly recap calculates averages correctly", () => {
   assert.strictEqual(recap.averageWaterMl, 2500); // (2000 + 3000) / 2
   assert.strictEqual(recap.activeDaysCount, 2);
 });
+
+test("calculateHeatmapCell returns complete cell details", () => {
+  const data = createMockData();
+  const date = "2026-10-27";
+  data.dailyRecords.push({ date, steps: 8000, waterMl: 2000, updatedAt: "" });
+
+  const cell = calculateHeatmapCell(data, date);
+  assert.strictEqual(cell.date, date);
+  assert.strictEqual(cell.hasData, true);
+  assert.strictEqual(cell.isGoalReached, true);
+  assert.strictEqual(cell.level, 4);
+});

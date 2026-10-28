@@ -9,7 +9,7 @@ import { HabitsChecklist } from "@/components/HabitsChecklist";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { WeeklyRecap } from "@/components/WeeklyRecap";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
-import { Sparkles, Calendar, Activity } from "lucide-react";
+import { Sparkles, Calendar } from "lucide-react";
 
 export function OverviewView() {
   const { appData, openQuickLog, logWater, today } = useApp();

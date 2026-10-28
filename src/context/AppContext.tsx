@@ -1,6 +1,13 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useState, useTransition } from "react";
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import {
   ActiveTab,
   AppData,
@@ -11,6 +18,7 @@ import {
   WorkoutType,
 } from "@/types";
 import { StorageService, getDefaultAppData } from "@/lib/storage";
+import { STORAGE_KEY } from "@/lib/constants";
 import { getTodayISODate } from "@/lib/dateUtils";
 
 type ToastMessage = {
@@ -67,50 +75,100 @@ type AppContextType = {
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
+// In-memory snapshot & subscriber registry for React 18/19 useSyncExternalStore
+let dataListeners: Array<() => void> = [];
+let cachedDataSnapshot: AppData | null = null;
+
+function subscribeData(listener: () => void) {
+  dataListeners.push(listener);
+  const handleStorage = (e: StorageEvent) => {
+    if (e.key === STORAGE_KEY) {
+      cachedDataSnapshot = StorageService.load();
+      listener();
+    }
+  };
+  if (typeof window !== "undefined") {
+    window.addEventListener("storage", handleStorage);
+  }
+  return () => {
+    dataListeners = dataListeners.filter((l) => l !== listener);
+    if (typeof window !== "undefined") {
+      window.removeEventListener("storage", handleStorage);
+    }
+  };
+}
+
+function getDataSnapshot(): AppData {
+  if (typeof window === "undefined") {
+    return getDefaultAppData();
+  }
+  if (!cachedDataSnapshot) {
+    cachedDataSnapshot = StorageService.load();
+  }
+  return cachedDataSnapshot;
+}
+
+function getServerDataSnapshot(): AppData {
+  return getDefaultAppData();
+}
+
+function emitDataChange(next: AppData) {
+  cachedDataSnapshot = next;
+  StorageService.save(next);
+  for (const listener of dataListeners) {
+    listener();
+  }
+}
+
+const emptySubscribe = () => () => {};
+function getTodaySnapshot(): ISODate {
+  if (typeof window === "undefined") return "2026-10-27";
+  return getTodayISODate();
+}
+function getServerTodaySnapshot(): ISODate {
+  return "2026-10-27";
+}
+function getMountedSnapshot(): boolean {
+  return true;
+}
+function getServerMountedSnapshot(): boolean {
+  return false;
+}
+
 export function AppProvider({ children }: { children: React.ReactNode }) {
-  const [appData, setAppData] = useState<AppData>(getDefaultAppData);
-  const [isLoaded, setIsLoaded] = useState(false);
-  const [isMounted, setIsMounted] = useState(false);
-  const [today, setToday] = useState<ISODate>("2026-10-27");
+  const appData = useSyncExternalStore(subscribeData, getDataSnapshot, getServerDataSnapshot);
+  const today = useSyncExternalStore(emptySubscribe, getTodaySnapshot, getServerTodaySnapshot);
+  const isMounted = useSyncExternalStore(emptySubscribe, getMountedSnapshot, getServerMountedSnapshot);
+
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
-  const [selectedDate, setSelectedDate] = useState<ISODate>("2026-10-27");
+  const [selectedDateOverride, setSelectedDateOverride] = useState<ISODate | null>(null);
+  const selectedDate = selectedDateOverride ?? today;
+  const setSelectedDate = (d: ISODate) => setSelectedDateOverride(d);
+
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [quickLogMetric, setQuickLogMetric] = useState<"steps" | "calories" | "water" | "workout">("steps");
   const [isDayDetailOpen, setIsDayDetailOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // Load from localStorage and set client date on mount
-  useEffect(() => {
-    const loaded = StorageService.load();
-    const actualToday = getTodayISODate();
-    setToday(actualToday);
-    setSelectedDate(actualToday);
-    setAppData(loaded);
-    setIsLoaded(true);
-    setIsMounted(true);
+  const toastSeqRef = useRef(0);
+
+  const removeToast = useCallback((id: string) => {
+    setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  // Save to localStorage when appData changes (after initial mount)
-  const updateData = (updater: (prev: AppData) => AppData) => {
-    setAppData((prev) => {
-      const next = updater(prev);
-      if (isLoaded) {
-        StorageService.save(next);
-      }
-      return next;
-    });
-  };
-
-  const showToast = (message: string, type: "success" | "info" | "error" = "success") => {
-    const id = `${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
+  const showToast = useCallback((message: string, type: "success" | "info" | "error" = "success") => {
+    toastSeqRef.current += 1;
+    const id = `toast-${toastSeqRef.current}`;
     setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
       removeToast(id);
     }, 3500);
-  };
+  }, [removeToast]);
 
-  const removeToast = (id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id));
+  const updateData = (updater: (prev: AppData) => AppData) => {
+    const prev = getDataSnapshot();
+    const next = updater(prev);
+    emitDataChange(next);
   };
 
   const openQuickLog = (metric: "steps" | "calories" | "water" | "workout" = "steps") => {
@@ -390,7 +448,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const importJSON = (jsonString: string): boolean => {
     const res = StorageService.importJSON(jsonString);
     if (res.success && res.data) {
-      setAppData(res.data);
+      emitDataChange(res.data);
       showToast("Data imported successfully!");
       return true;
     } else {
@@ -402,14 +460,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const clearAllData = () => {
     StorageService.clear();
     const defaults = getDefaultAppData();
-    setAppData(defaults);
+    emitDataChange(defaults);
     showToast("All local data has been reset", "info");
   };
 
   const loadDemoData = () => {
     const sample = StorageService.generateSampleData();
-    StorageService.save(sample);
-    setAppData(sample);
+    emitDataChange(sample);
     showToast("Demo activity loaded! Explore the heatmap and history.");
   };
 

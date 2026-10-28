@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { getActiveHabitsForDate, isHabitCompleted } from "@/lib/calculations";
-import { Check, Plus, Sparkles, CheckCircle2, Flame } from "lucide-react";
+import { Check, Plus, Sparkles, Flame } from "lucide-react";
 
 export function HabitsChecklist() {
   const { appData, toggleHabit, addHabit, today } = useApp();
