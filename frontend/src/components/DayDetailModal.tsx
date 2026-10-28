@@ -49,19 +49,23 @@ export function DayDetailModal() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="day-detail-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      onClick={closeDayDetail}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div
-        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh] relative"
+        className="bg-[#0e1017] border-t sm:border border-white/[0.12] rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Ambient glow */}
         <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Mobile pull indicator */}
+        <div className="sm:hidden w-12 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
+
         {/* Header */}
-        <div className="p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
+        <div className="px-5 py-4 sm:p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-emerald-400">
+            <div className="p-2 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-emerald-400">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
@@ -94,9 +98,9 @@ export function DayDetailModal() {
           <button
             onClick={closeDayDetail}
             aria-label="Close dialog"
-            className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
@@ -329,7 +333,7 @@ export function DayDetailModal() {
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-white/[0.08] flex items-center justify-between bg-zinc-900/50 relative z-10">
+        <div className="p-4 pb-[max(1rem,env(safe-area-inset-bottom,1rem))] border-t border-white/[0.08] flex items-center justify-between bg-zinc-900/50 relative z-10">
           <span className="text-xs font-mono text-zinc-500">
             Local Device Record
           </span>
@@ -338,7 +342,7 @@ export function DayDetailModal() {
               closeDayDetail();
               openQuickLog("steps");
             }}
-            className="flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
+            className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
           >
             <Edit3 className="w-3.5 h-3.5 stroke-[2.5]" />
             <span>Edit Metrics for this Day</span>

@@ -5,6 +5,10 @@ import { useApp } from "@/context/AppContext";
 import { Goals } from "@/types";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import {
+  usePWAInstall,
+  promptPWAInstall,
+} from "@/components/ServiceWorkerRegister";
+import {
   Target,
   Download,
   Upload,
@@ -14,6 +18,8 @@ import {
   AlertCircle,
   FileSpreadsheet,
   Sparkles,
+  Smartphone,
+  CheckCircle2,
 } from "lucide-react";
 
 export function SettingsView() {
@@ -33,6 +39,7 @@ export function SettingsView() {
 
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const canInstallPWA = usePWAInstall();
 
   const handleGoalsSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -308,6 +315,61 @@ export function SettingsView() {
             </div>
           )}
         </div>
+      </div>
+
+      {/* Progressive Web App (PWA) & Mobile Status */}
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <Smartphone className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Android & Mobile Installation
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Install SYDD as a standalone app on your Android device with offline support.
+              </p>
+            </div>
+          </div>
+
+          <div className="hidden sm:flex items-center gap-1.5 px-3 py-1 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-xl text-xs font-mono font-bold">
+            <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
+            <span>PWA Standalone</span>
+          </div>
+        </div>
+
+        <div className="p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] space-y-2.5 text-xs text-zinc-400">
+          <div className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+            <p>
+              <strong className="text-zinc-200">Standalone Experience:</strong> Launches fullscreen without browser URL bars, behaves like a native Android app, and keeps screen awake during workouts.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+            <p>
+              <strong className="text-zinc-200">Offline Resilience:</strong> The app shell is cached locally via Service Worker. Track your steps, workouts, and habits anywhere without internet access.
+            </p>
+          </div>
+          <div className="flex items-start gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 mt-1.5 shrink-0" />
+            <p>
+              <strong className="text-zinc-200">Android Chrome Installation:</strong> If you don&apos;t see the prompt below, tap the <strong>⋮ (menu)</strong> in Chrome and choose <strong>&ldquo;Install app&rdquo;</strong> or <strong>&ldquo;Add to Home screen&rdquo;</strong>.
+            </p>
+          </div>
+        </div>
+
+        {canInstallPWA && (
+          <button
+            onClick={() => promptPWAInstall()}
+            className="w-full flex items-center justify-center gap-2 py-3 px-5 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
+          >
+            <Download className="w-4 h-4 stroke-[2.5]" />
+            <span>Install SYDD App to Android Home Screen</span>
+          </button>
+        )}
       </div>
 
       {/* Demo Data & Danger Zone */}

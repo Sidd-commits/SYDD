@@ -33,7 +33,7 @@ export default function Home() {
   return (
     <div className="min-h-screen flex flex-col bg-[#08090d] text-zinc-100">
       <Header />
-      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-5 sm:pt-7">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 pt-4 sm:pt-7 pb-24 md:pb-12">
         <Suspense fallback={<div className="h-64 flex items-center justify-center text-xs text-stone-400">Loading SYDD dashboard...</div>}>
           <DashboardContent />
         </Suspense>

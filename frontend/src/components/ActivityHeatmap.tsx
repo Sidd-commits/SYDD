@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useApp } from "@/context/AppContext";
 import { buildHeatmapWeeks, formatDisplayDate } from "@/lib/dateUtils";
 import { calculateHeatmapCell, calculateStreaks } from "@/lib/calculations";
@@ -33,9 +33,17 @@ export function ActivityHeatmap() {
     y: number;
   } | null>(null);
   const [showFormula, setShowFormula] = useState(false);
+  const gridScrollRef = useRef<HTMLDivElement>(null);
 
   const weeks = buildHeatmapWeeks(selectedYear, today);
   const { currentStreak, bestStreak, totalActiveDays } = calculateStreaks(appData, today);
+
+  // Auto-scroll mobile view to the latest week so users instantly see current activity
+  useEffect(() => {
+    if (gridScrollRef.current) {
+      gridScrollRef.current.scrollLeft = gridScrollRef.current.scrollWidth;
+    }
+  }, [selectedYear]);
 
   const getCellClasses = (level: number, isFuture: boolean, isToday: boolean) => {
     if (isFuture) {
@@ -153,7 +161,10 @@ export function ActivityHeatmap() {
       )}
 
       {/* Heatmap Grid Container (Horizontally scrollable on small screens) */}
-      <div className="overflow-x-auto custom-scrollbar pb-3 pt-1">
+      <div
+        ref={gridScrollRef}
+        className="overflow-x-auto custom-scrollbar touch-scroll pb-3 pt-1"
+      >
         <div className="inline-block min-w-max select-none">
           {/* Month Labels Row */}
           <div className="flex text-[11px] font-mono text-zinc-500 mb-2 ml-7">

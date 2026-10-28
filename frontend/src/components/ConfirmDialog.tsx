@@ -29,10 +29,11 @@ export function ConfirmDialog({
       role="alertdialog"
       aria-modal="true"
       aria-labelledby="confirm-dialog-title"
+      onClick={onCancel}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div
-        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-sm w-full p-6 shadow-2xl space-y-4"
+        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-sm w-full p-5 sm:p-6 shadow-2xl space-y-4"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex items-start gap-3.5">
@@ -62,14 +63,14 @@ export function ConfirmDialog({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl transition-colors cursor-pointer"
+            className="min-h-[44px] px-4 py-2.5 text-xs font-semibold text-zinc-400 hover:text-white rounded-xl transition-colors cursor-pointer"
           >
             Cancel
           </button>
           <button
             type="button"
             onClick={onConfirm}
-            className={`px-5 py-2.5 text-xs font-bold rounded-2xl text-white transition-all shadow-lg cursor-pointer active:scale-95 ${
+            className={`min-h-[44px] px-5 py-2.5 text-xs font-bold rounded-2xl text-white transition-all shadow-lg cursor-pointer active:scale-95 ${
               confirmVariant === "danger"
                 ? "bg-rose-600 hover:bg-rose-500 shadow-rose-600/30"
                 : "bg-emerald-600 hover:bg-emerald-500 shadow-emerald-600/30 text-zinc-950"

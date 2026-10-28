@@ -102,17 +102,21 @@ function QuickLogModalContent() {
       role="dialog"
       aria-modal="true"
       aria-labelledby="quick-log-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      onClick={closeQuickLog}
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
     >
       <div
-        className="bg-[#0e1017] border border-white/[0.12] rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[92vh] relative"
+        className="bg-[#0e1017] border-t sm:border border-white/[0.12] rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Glow ambient */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
 
+        {/* Mobile pull indicator */}
+        <div className="sm:hidden w-12 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
+
         {/* Header */}
-        <div className="p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
+        <div className="px-5 py-4 sm:p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
           <div>
             <h2 id="quick-log-title" className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -125,63 +129,63 @@ function QuickLogModalContent() {
           <button
             onClick={closeQuickLog}
             aria-label="Close modal"
-            className="p-2 text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
-            <X className="w-4 h-4" />
+            <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Metric Selector Tabs */}
-        <div className="p-3 bg-zinc-900/60 border-b border-white/[0.06] grid grid-cols-4 gap-1.5 relative z-10">
+        <div className="p-2 sm:p-3 bg-zinc-900/60 border-b border-white/[0.06] grid grid-cols-4 gap-1.5 relative z-10">
           <button
             type="button"
             onClick={() => setActiveMetric("steps")}
-            className={`flex flex-col items-center py-2.5 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "steps"
                 ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/10"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Footprints className="w-4 h-4 mb-1" />
+            <Footprints className="w-4 h-4 mb-0.5" />
             <span>Steps</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("water")}
-            className={`flex flex-col items-center py-2.5 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "water"
                 ? "bg-sky-500/15 border border-sky-500/40 text-sky-300 shadow-md shadow-sky-500/10"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Droplet className="w-4 h-4 mb-1" />
+            <Droplet className="w-4 h-4 mb-0.5" />
             <span>Water</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("workout")}
-            className={`flex flex-col items-center py-2.5 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "workout"
                 ? "bg-indigo-500/15 border border-indigo-500/40 text-indigo-300 shadow-md shadow-indigo-500/10"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Dumbbell className="w-4 h-4 mb-1" />
+            <Dumbbell className="w-4 h-4 mb-0.5" />
             <span>Workout</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("calories")}
-            className={`flex flex-col items-center py-2.5 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "calories"
                 ? "bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-md shadow-amber-500/10"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Flame className="w-4 h-4 mb-1" />
+            <Flame className="w-4 h-4 mb-0.5" />
             <span>Calories</span>
           </button>
         </div>
@@ -375,17 +379,17 @@ function QuickLogModalContent() {
           )}
 
           {/* Submit Actions */}
-          <div className="pt-3 flex items-center justify-end gap-2.5">
+          <div className="pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] flex items-center justify-end gap-2.5">
             <button
               type="button"
               onClick={closeQuickLog}
-              className="px-4 py-2.5 text-zinc-400 hover:text-white text-xs font-bold rounded-2xl transition-colors cursor-pointer"
+              className="min-h-[44px] px-4 py-2.5 text-zinc-400 hover:text-white text-xs font-bold rounded-2xl transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+              className="min-h-[44px] px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
             >
               <Check className="w-4 h-4 stroke-[3]" />
               <span>Save Entry</span>

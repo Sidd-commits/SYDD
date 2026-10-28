@@ -57,7 +57,7 @@ export function Header() {
           {/* Quick Log Action */}
           <button
             onClick={() => openQuickLog("steps")}
-            className="relative group flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-zinc-950 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-200 active:scale-95 cursor-pointer"
+            className="relative group min-h-[44px] flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-zinc-950 text-xs sm:text-sm font-bold rounded-xl shadow-lg shadow-emerald-500/20 transition-all duration-200 active:scale-95 cursor-pointer"
             aria-label="Quick log activity"
           >
             <Plus className="w-4 h-4 stroke-[3]" />

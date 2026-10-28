@@ -60,7 +60,7 @@ export function Navigation() {
       {/* Mobile Bottom Navigation Bar */}
       <nav
         aria-label="Mobile Navigation"
-        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#08090d]/90 backdrop-blur-2xl border-t border-white/[0.08] px-3 py-1.5 flex items-center justify-around shadow-2xl"
+        className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#08090d]/95 backdrop-blur-2xl border-t border-white/[0.08] px-2 pt-1.5 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] flex items-center justify-around shadow-2xl"
       >
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
@@ -69,7 +69,7 @@ export function Navigation() {
             <button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
-              className={`flex flex-col items-center justify-center min-h-[48px] py-1 px-3 rounded-2xl transition-all cursor-pointer ${
+              className={`flex flex-col items-center justify-center min-h-[48px] min-w-[56px] py-1 px-2.5 rounded-2xl transition-all active:scale-95 cursor-pointer ${
                 isActive
                   ? "text-emerald-400 font-bold"
                   : "text-zinc-500 hover:text-zinc-300"
@@ -79,7 +79,9 @@ export function Navigation() {
             >
               <div
                 className={`p-1.5 rounded-xl transition-all ${
-                  isActive ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 scale-105" : ""
+                  isActive
+                    ? "bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 scale-105 shadow-xs shadow-emerald-500/20"
+                    : ""
                 }`}
               >
                 <Icon className="w-5 h-5" />

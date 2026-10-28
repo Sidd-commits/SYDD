@@ -220,7 +220,7 @@ export function MetricCard({
             <button
               key={opt.label}
               onClick={() => onQuickAdd(opt.amount)}
-              className="flex-1 py-1.5 px-2 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/[0.08] hover:border-emerald-500/30 text-zinc-300 hover:text-emerald-300 rounded-xl text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
+              className="flex-1 min-h-[40px] py-2 px-2.5 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/[0.08] hover:border-emerald-500/30 text-zinc-300 hover:text-emerald-300 rounded-xl text-xs font-semibold transition-all duration-150 active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
             >
               <Plus className="w-3 h-3 stroke-[3]" />
               <span>{opt.label}</span>

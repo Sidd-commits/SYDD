@@ -140,3 +140,44 @@ input[type="number"] {
   outline: 2px solid #10b981;
   outline-offset: 2px;
 }
+
+/* Mobile Touch & PWA Ergonomics */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button,
+[role="button"],
+[role="tab"],
+[role="checkbox"],
+a {
+  touch-action: manipulation;
+}
+
+.touch-scroll {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
+}
+
+.safe-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom, 0.75rem));
+}
+
+.safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top, 0.5rem));
+}
+
+@keyframes slideUpMobile {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up-mobile {
+  animation: slideUpMobile 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
