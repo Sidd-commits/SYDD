@@ -6,6 +6,7 @@ import {
   calculateHeatmapCell,
   calculateStreaks,
   calculateWeeklyRecap,
+  calculateWorkoutStats,
 } from "./calculations";
 import { getDefaultAppData } from "./storage";
 
@@ -159,4 +160,56 @@ test("calculateHeatmapCell returns complete cell details", () => {
   assert.strictEqual(cell.hasData, true);
   assert.strictEqual(cell.isGoalReached, true);
   assert.strictEqual(cell.level, 4);
+});
+
+test("calculateWorkoutStats accurately calculates total exercises, sets, and volume load", () => {
+  // Simple workout without exercises
+  const simpleWorkout = {
+    id: "w-simple",
+    date: "2026-10-28",
+    type: "walking" as const,
+    durationMinutes: 30,
+    createdAt: "",
+    updatedAt: "",
+  };
+  const simpleStats = calculateWorkoutStats(simpleWorkout);
+  assert.strictEqual(simpleStats.hasGranularSets, false);
+  assert.strictEqual(simpleStats.totalVolume, 0);
+  assert.strictEqual(simpleStats.totalSets, 0);
+
+  // Granular strength workout
+  const granularWorkout = {
+    id: "w-granular",
+    date: "2026-10-28",
+    type: "strength" as const,
+    durationMinutes: 50,
+    exercises: [
+      {
+        id: "ex-1",
+        name: "Barbell Bench Press",
+        sets: [
+          { id: "s-1", setNumber: 1, reps: 10, weight: 60, weightUnit: "kg" as const, completed: true }, // 600 kg
+          { id: "s-2", setNumber: 2, reps: 8, weight: 70, weightUnit: "kg" as const, completed: true },  // 560 kg
+          { id: "s-3", setNumber: 3, reps: 6, weight: 80, weightUnit: "kg" as const, completed: false }, // not completed -> 0
+        ],
+      },
+      {
+        id: "ex-2",
+        name: "Push-ups",
+        sets: [
+          { id: "s-4", setNumber: 1, reps: 20, weight: 0, weightUnit: "kg" as const, completed: true },   // bodyweight -> 0 kg volume
+        ],
+      },
+    ],
+    createdAt: "",
+    updatedAt: "",
+  };
+
+  const granularStats = calculateWorkoutStats(granularWorkout);
+  assert.strictEqual(granularStats.hasGranularSets, true);
+  assert.strictEqual(granularStats.totalExercises, 2);
+  assert.strictEqual(granularStats.totalSets, 4);
+  assert.strictEqual(granularStats.completedSets, 3);
+  // Volume: (60 * 10) + (70 * 8) = 600 + 560 = 1160 kg
+  assert.strictEqual(granularStats.totalVolume, 1160);
 });

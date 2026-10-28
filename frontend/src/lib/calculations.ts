@@ -331,3 +331,49 @@ export function calculateWeeklyRecap(data: AppData, referenceDate: ISODate = "20
     daysTracked: dates.filter((d) => calculateDaySummary(data, d).hasData).length,
   };
 }
+
+/**
+ * Calculates granular set, rep, and volume metrics for a workout.
+ */
+export function calculateWorkoutStats(workout: Workout): {
+  totalExercises: number;
+  totalSets: number;
+  completedSets: number;
+  totalVolume: number; // Sum of weight * reps for completed sets
+  hasGranularSets: boolean;
+} {
+  const exercises = workout.exercises || [];
+  if (exercises.length === 0) {
+    return {
+      totalExercises: 0,
+      totalSets: 0,
+      completedSets: 0,
+      totalVolume: 0,
+      hasGranularSets: false,
+    };
+  }
+
+  let totalSets = 0;
+  let completedSets = 0;
+  let totalVolume = 0;
+
+  exercises.forEach((ex) => {
+    (ex.sets || []).forEach((set) => {
+      totalSets++;
+      if (set.completed) {
+        completedSets++;
+        if (typeof set.weight === "number" && set.weight > 0 && set.reps > 0) {
+          totalVolume += set.weight * set.reps;
+        }
+      }
+    });
+  });
+
+  return {
+    totalExercises: exercises.length,
+    totalSets,
+    completedSets,
+    totalVolume: Math.round(totalVolume * 10) / 10,
+    hasGranularSets: totalSets > 0,
+  };
+}

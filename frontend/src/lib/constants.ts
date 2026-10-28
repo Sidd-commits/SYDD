@@ -15,6 +15,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   goals: DEFAULT_GOALS,
   onboardingCompleted: false,
   unitWater: "ml",
+  unitWeight: "kg",
 };
 
 export const DEFAULT_HABITS: Habit[] = [

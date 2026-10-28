@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { calculateDaySummary, isHabitCompleted } from "@/lib/calculations";
+import { calculateDaySummary, calculateWorkoutStats, isHabitCompleted } from "@/lib/calculations";
 import { formatDisplayDate } from "@/lib/dateUtils";
 import {
   X,
@@ -16,6 +16,9 @@ import {
   Plus,
   Edit3,
   StickyNote,
+  ChevronDown,
+  ChevronUp,
+  Check,
 } from "lucide-react";
 
 export function DayDetailModal() {
@@ -33,11 +36,16 @@ export function DayDetailModal() {
 
   const [notes, setNotes] = useState("");
   const [isEditingNotes, setIsEditingNotes] = useState(false);
+  const [expandedWorkouts, setExpandedWorkouts] = useState<Record<string, boolean>>({});
 
   if (!isDayDetailOpen) return null;
 
   const summary = calculateDaySummary(appData, selectedDate);
   const isSelectedToday = selectedDate === today;
+
+  const toggleWorkoutExpanded = (id: string) => {
+    setExpandedWorkouts((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
 
   const handleNotesSave = () => {
     saveDailyNotes(notes, selectedDate);
@@ -206,30 +214,122 @@ export function DayDetailModal() {
             {summary.workouts.length === 0 ? (
               <p className="text-xs text-zinc-500 italic">No workouts logged on this date.</p>
             ) : (
-              <div className="space-y-2">
-                {summary.workouts.map((w) => (
-                  <div
-                    key={w.id}
-                    className="flex items-center justify-between p-3 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs"
-                  >
-                    <div>
-                      <span className="font-bold capitalize text-white">
-                        {w.type}
-                      </span>
-                      <span className="text-zinc-400 ml-2 font-mono font-medium">{w.durationMinutes} mins</span>
-                      {w.notes && (
-                        <p className="text-zinc-500 text-[11px] mt-0.5">{w.notes}</p>
+              <div className="space-y-2.5">
+                {summary.workouts.map((w) => {
+                  const stats = calculateWorkoutStats(w);
+                  const isExpanded = expandedWorkouts[w.id];
+
+                  return (
+                    <div
+                      key={w.id}
+                      className="p-3.5 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-xs space-y-2.5 transition-all"
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold capitalize text-white text-sm">
+                              {w.type}
+                            </span>
+                            <span className="text-zinc-400 font-mono font-medium">
+                              {w.durationMinutes} mins
+                            </span>
+
+                            {stats.hasGranularSets && (
+                              <span className="text-[10px] font-mono font-bold bg-indigo-500/15 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded-full">
+                                {stats.totalExercises} ex • {stats.completedSets} sets
+                              </span>
+                            )}
+                            {stats.totalVolume > 0 && (
+                              <span className="text-[10px] font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded-full">
+                                {stats.totalVolume.toLocaleString()} {appData.settings.unitWeight || "kg"}
+                              </span>
+                            )}
+                          </div>
+
+                          {w.notes && (
+                            <p className="text-zinc-400 text-xs mt-1 leading-relaxed">
+                              {w.notes}
+                            </p>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1 shrink-0">
+                          {stats.hasGranularSets && (
+                            <button
+                              type="button"
+                              onClick={() => toggleWorkoutExpanded(w.id)}
+                              className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer flex items-center gap-1 text-[11px] font-bold"
+                            >
+                              <span>{isExpanded ? "Hide Sets" : "View Sets"}</span>
+                              {isExpanded ? (
+                                <ChevronUp className="w-3.5 h-3.5" />
+                              ) : (
+                                <ChevronDown className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => deleteWorkout(w.id)}
+                            aria-label="Delete workout"
+                            className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer rounded-lg hover:bg-white/[0.05]"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Granular Exercises & Sets breakdown */}
+                      {stats.hasGranularSets && isExpanded && (
+                        <div className="pt-2 border-t border-white/[0.06] space-y-2">
+                          {(w.exercises || []).map((ex, exIdx) => (
+                            <div
+                              key={ex.id || exIdx}
+                              className="p-2.5 rounded-xl bg-zinc-950/50 border border-white/[0.05] space-y-1.5"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="font-bold text-white text-xs">
+                                  {ex.name}
+                                </span>
+                                <span className="text-[10px] font-mono text-zinc-500">
+                                  {ex.sets.filter((s) => s.completed).length} / {ex.sets.length} sets
+                                </span>
+                              </div>
+
+                              <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                                {ex.sets.map((set) => (
+                                  <div
+                                    key={set.id}
+                                    className={`flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-mono border ${
+                                      set.completed
+                                        ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-300"
+                                        : "bg-white/[0.02] border-white/[0.06] text-zinc-500 line-through"
+                                    }`}
+                                  >
+                                    <span>#{set.setNumber}:</span>
+                                    <span className="font-bold text-white">
+                                      {set.reps} reps
+                                    </span>
+                                    {set.weight !== undefined && set.weight > 0 ? (
+                                      <span>
+                                        @ {set.weight}
+                                        {set.weightUnit || appData.settings.unitWeight || "kg"}
+                                      </span>
+                                    ) : (
+                                      <span className="text-zinc-400">(bw)</span>
+                                    )}
+                                    {set.completed && (
+                                      <Check className="w-2.5 h-2.5 text-emerald-400 stroke-[3]" />
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
                       )}
                     </div>
-                    <button
-                      onClick={() => deleteWorkout(w.id)}
-                      aria-label="Delete workout"
-                      className="p-1.5 text-zinc-500 hover:text-rose-400 transition-colors cursor-pointer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

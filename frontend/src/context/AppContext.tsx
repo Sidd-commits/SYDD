@@ -14,7 +14,9 @@ import {
   Goals,
   Habit,
   ISODate,
+  WeightUnit,
   Workout,
+  WorkoutExercise,
   WorkoutType,
 } from "@/types";
 import { StorageService, getDefaultAppData } from "@/lib/storage";
@@ -55,9 +57,12 @@ type AppContextType = {
     type: WorkoutType,
     durationMinutes: number,
     notes?: string,
-    date?: ISODate
+    date?: ISODate,
+    exercises?: WorkoutExercise[]
   ) => void;
+  updateWorkout: (workout: Workout) => void;
   deleteWorkout: (id: string) => void;
+  updateUnitWeight: (unit: WeightUnit) => void;
   toggleHabit: (habitId: string, date?: ISODate) => void;
   addHabit: (name: string) => void;
   renameHabit: (id: string, newName: string) => void;
@@ -284,7 +289,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     type: WorkoutType,
     durationMinutes: number,
     notes?: string,
-    date: ISODate = selectedDate
+    date: ISODate = selectedDate,
+    exercises?: WorkoutExercise[]
   ) => {
     const cleanDuration = Math.max(1, Math.floor(durationMinutes));
     const newWorkout: Workout = {
@@ -293,6 +299,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       type,
       durationMinutes: cleanDuration,
       notes: notes?.trim() || undefined,
+      exercises: exercises && exercises.length > 0 ? exercises : undefined,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
@@ -302,7 +309,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       workouts: [...prev.workouts, newWorkout],
     }));
 
-    showToast(`Workout logged: ${cleanDuration}m ${type}`);
+    const detail =
+      exercises && exercises.length > 0
+        ? ` (${exercises.length} exercise${exercises.length > 1 ? "s" : ""})`
+        : "";
+    showToast(`Workout logged: ${cleanDuration}m ${type}${detail}`);
+  };
+
+  const updateWorkout = (workout: Workout) => {
+    updateData((prev) => ({
+      ...prev,
+      workouts: prev.workouts.map((w) =>
+        w.id === workout.id ? { ...workout, updatedAt: new Date().toISOString() } : w
+      ),
+    }));
+    showToast("Workout updated");
   };
 
   const deleteWorkout = (id: string) => {
@@ -311,6 +332,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       workouts: prev.workouts.filter((w) => w.id !== id),
     }));
     showToast("Workout removed", "info");
+  };
+
+  const updateUnitWeight = (unit: WeightUnit) => {
+    updateData((prev) => ({
+      ...prev,
+      settings: {
+        ...prev.settings,
+        unitWeight: unit,
+      },
+    }));
+    showToast(`Weight unit set to ${unit}`);
   };
 
   const toggleHabit = (habitId: string, date: ISODate = selectedDate) => {
@@ -496,7 +528,9 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         logWater,
         saveDailyNotes,
         addWorkout,
+        updateWorkout,
         deleteWorkout,
+        updateUnitWeight,
         toggleHabit,
         addHabit,
         renameHabit,

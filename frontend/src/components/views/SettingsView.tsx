@@ -20,12 +20,14 @@ import {
   Sparkles,
   Smartphone,
   CheckCircle2,
+  Dumbbell,
 } from "lucide-react";
 
 export function SettingsView() {
   const {
     appData,
     updateGoals,
+    updateUnitWeight,
     exportJSON,
     exportCSV,
     importJSON,
@@ -226,6 +228,59 @@ export function SettingsView() {
             </button>
           </div>
         </form>
+      </div>
+
+      {/* Measurement Units */}
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+            <Dumbbell className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-base font-bold text-white tracking-tight">
+              Workout & Measurement Units
+            </h2>
+            <p className="text-xs text-zinc-400">
+              Select your preferred units for logging exercise sets and volumes.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+          <div>
+            <span className="text-xs font-bold text-white block">
+              Default Weight Unit
+            </span>
+            <span className="text-[11px] text-zinc-400 block mt-0.5">
+              Used when logging barbell, dumbbell, and machine sets
+            </span>
+          </div>
+
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/[0.08] self-start sm:self-auto">
+            <button
+              type="button"
+              onClick={() => updateUnitWeight("kg")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                (appData.settings.unitWeight || "kg") === "kg"
+                  ? "bg-emerald-500 text-zinc-950 shadow-xs"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              kg (Kilograms)
+            </button>
+            <button
+              type="button"
+              onClick={() => updateUnitWeight("lbs")}
+              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+                appData.settings.unitWeight === "lbs"
+                  ? "bg-emerald-500 text-zinc-950 shadow-xs"
+                  : "text-zinc-400 hover:text-white"
+              }`}
+            >
+              lbs (Pounds)
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Data Export & Backup */}

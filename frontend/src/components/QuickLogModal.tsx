@@ -2,8 +2,9 @@
 
 import React, { useState } from "react";
 import { useApp } from "@/context/AppContext";
-import { WorkoutType } from "@/types";
+import { WorkoutExercise, WorkoutType } from "@/types";
 import { formatDisplayDate } from "@/lib/dateUtils";
+import { WorkoutSetBuilder } from "@/components/WorkoutSetBuilder";
 import {
   X,
   Footprints,
@@ -44,6 +45,7 @@ function QuickLogModalContent() {
   const [workoutType, setWorkoutType] = useState<WorkoutType>("walking");
   const [workoutDuration, setWorkoutDuration] = useState("30");
   const [workoutNotes, setWorkoutNotes] = useState("");
+  const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -92,7 +94,13 @@ function QuickLogModalContent() {
         setErrorMsg("Duration must be between 1 and 1440 minutes.");
         return;
       }
-      addWorkout(workoutType, duration, workoutNotes, logDate);
+      addWorkout(
+        workoutType,
+        duration,
+        workoutNotes,
+        logDate,
+        workoutExercises.length > 0 ? workoutExercises : undefined
+      );
       closeQuickLog();
     }
   };
@@ -341,6 +349,13 @@ function QuickLogModalContent() {
                   className="w-full px-4 py-2.5 text-sm bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white"
                 />
               </div>
+
+              {/* Collapsible Granular Sets & Reps Builder */}
+              <WorkoutSetBuilder
+                exercises={workoutExercises}
+                onChange={setWorkoutExercises}
+                defaultWeightUnit={appData.settings.unitWeight || "kg"}
+              />
             </div>
           )}
 

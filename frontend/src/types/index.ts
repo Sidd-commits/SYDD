@@ -11,12 +11,32 @@ export type DailyRecord = {
 
 export type WorkoutType = "walking" | "running" | "cycling" | "strength" | "yoga" | "other";
 
+export type WeightUnit = "kg" | "lbs";
+
+export type WorkoutSet = {
+  id: string;
+  setNumber: number;
+  reps: number;
+  weight?: number; // 0 or undefined for bodyweight exercises
+  weightUnit?: WeightUnit;
+  completed: boolean;
+};
+
+export type WorkoutExercise = {
+  id: string;
+  exerciseId?: string; // Optional reference to catalog exercise
+  name: string;
+  sets: WorkoutSet[];
+  notes?: string;
+};
+
 export type Workout = {
   id: string;
   date: ISODate;
   type: WorkoutType;
   durationMinutes: number;
   notes?: string;
+  exercises?: WorkoutExercise[]; // Granular exercise & set details
   createdAt: string;
   updatedAt: string;
 };
@@ -49,6 +69,33 @@ export type AppSettings = {
   goals: Goals;
   onboardingCompleted: boolean;
   unitWater: "ml" | "l";
+  unitWeight?: WeightUnit;
+};
+
+export type MuscleGroup =
+  | "chest"
+  | "back"
+  | "shoulders"
+  | "legs"
+  | "arms"
+  | "core"
+  | "cardio"
+  | "full_body";
+
+export type EquipmentType =
+  | "barbell"
+  | "dumbbell"
+  | "machine"
+  | "cable"
+  | "bodyweight"
+  | "kettlebell"
+  | "other";
+
+export type ExerciseDefinition = {
+  id: string;
+  name: string;
+  muscleGroup: MuscleGroup;
+  equipment: EquipmentType;
 };
 
 export type AppData = {

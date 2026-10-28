@@ -38,6 +38,7 @@ export function validateAndMigrateData(raw: unknown): AppData {
     },
     onboardingCompleted: Boolean(data.settings?.onboardingCompleted),
     unitWater: data.settings?.unitWater === "l" ? ("l" as const) : ("ml" as const),
+    unitWeight: data.settings?.unitWeight === "lbs" ? ("lbs" as const) : ("kg" as const),
   };
 
   // Validate records
@@ -64,6 +65,26 @@ export function validateAndMigrateData(raw: unknown): AppData {
           type: w.type || "other",
           durationMinutes: Math.max(1, Number(w.durationMinutes) || 1),
           notes: w.notes,
+          exercises: Array.isArray(w.exercises) && w.exercises.length > 0
+            ? w.exercises
+                .filter((ex) => Boolean(ex && typeof ex.name === "string" && ex.name.trim().length > 0))
+                .map((ex) => ({
+                  id: ex.id || `ex-${Math.random().toString(36).substring(2, 9)}`,
+                  exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : undefined,
+                  name: ex.name.trim(),
+                  notes: typeof ex.notes === "string" ? ex.notes.trim() : undefined,
+                  sets: Array.isArray(ex.sets)
+                    ? ex.sets.map((s, idx) => ({
+                        id: s.id || `set-${Math.random().toString(36).substring(2, 9)}`,
+                        setNumber: typeof s.setNumber === "number" && s.setNumber > 0 ? s.setNumber : idx + 1,
+                        reps: Math.max(0, Number(s.reps) || 0),
+                        weight: typeof s.weight === "number" && !isNaN(s.weight) ? Math.max(0, s.weight) : undefined,
+                        weightUnit: s.weightUnit === "lbs" ? ("lbs" as const) : ("kg" as const),
+                        completed: s.completed !== false,
+                      }))
+                    : [],
+                }))
+            : undefined,
           createdAt: w.createdAt || new Date().toISOString(),
           updatedAt: w.updatedAt || new Date().toISOString(),
         }))
