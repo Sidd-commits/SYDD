@@ -106,9 +106,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, stepsPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
                   steps
                 </span>
               </div>
@@ -129,9 +129,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, waterMlPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
                   ml
                 </span>
               </div>
@@ -155,9 +155,9 @@ export function SettingsView() {
                       caloriesConsumedKcalPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className="w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
-                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
                   kcal
                 </span>
               </div>
@@ -198,11 +198,11 @@ export function SettingsView() {
                       workoutMinutesPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className={`w-full px-4 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
+                  className={`w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
                     !goalsState.workoutGoalEnabled ? "opacity-30 cursor-not-allowed" : ""
                   }`}
                 />
-                <span className="absolute right-4 top-3 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
                   mins
                 </span>
               </div>

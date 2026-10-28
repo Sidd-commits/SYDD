@@ -123,6 +123,18 @@ body::after {
   animation: pulseGlow 3s ease-in-out infinite;
 }
 
+/* Remove Browser Default Spinners on Number Inputs */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 /* Keyboard Focus */
 :focus-visible {
   outline: 2px solid #10b981;

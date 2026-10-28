@@ -3,7 +3,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateStreaks } from "@/lib/calculations";
-import { Flame, Plus, ShieldCheck } from "lucide-react";
+import { Flame, Plus } from "lucide-react";
 
 export function Header() {
   const { appData, openQuickLog, today } = useApp();
@@ -28,9 +28,6 @@ export function Header() {
               <span className="font-extrabold tracking-tight text-xl text-white">
                 SYDD
               </span>
-              <span className="text-[10px] tracking-widest font-mono font-semibold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                PRO v1.0
-              </span>
             </div>
             <p className="text-xs text-zinc-400 font-medium flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
@@ -41,12 +38,6 @@ export function Header() {
 
         {/* Right Info & Actions */}
         <div className="flex items-center gap-2.5 sm:gap-4">
-          {/* Privacy Badge */}
-          <div className="hidden lg:flex items-center gap-1.5 text-xs text-zinc-400 bg-white/[0.04] px-3 py-1.5 rounded-xl border border-white/[0.08]">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Local Storage • 100% Private</span>
-          </div>
-
           {/* Current Streak Pill */}
           <div
             className="flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-gradient-to-r from-amber-500/10 via-emerald-500/10 to-transparent text-amber-300 border border-amber-500/20 shadow-xs cursor-default"

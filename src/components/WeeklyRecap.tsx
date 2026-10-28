@@ -3,7 +3,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { calculateDaySummary, calculateWeeklyRecap } from "@/lib/calculations";
-import { formatDisplayDate, getPast7Days } from "@/lib/dateUtils";
+import { formatDisplayDate, getPast7Days, parseISODate } from "@/lib/dateUtils";
 import { Footprints, Droplet, Dumbbell, CalendarCheck } from "lucide-react";
 
 export function WeeklyRecap() {
@@ -30,20 +30,23 @@ export function WeeklyRecap() {
         </div>
 
         {/* 7-Day Mini Sparkline Bars */}
-        <div className="flex items-end gap-1.5 h-12 p-2 bg-zinc-900/60 rounded-2xl border border-white/[0.06] self-start sm:self-auto">
+        <div className="flex items-end gap-2 p-2.5 bg-zinc-900/60 rounded-2xl border border-white/[0.06] self-start sm:self-auto shadow-inner">
           {past7Days.map((date) => {
             const summary = calculateDaySummary(appData, date);
             const heightPercent = summary.level >= 0 ? Math.max(20, (summary.level / 4) * 100) : 10;
             const isDayToday = date === today;
+            const d = parseISODate(date);
+            const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
+            const dayNum = d.getDate();
 
             return (
               <div
                 key={date}
                 onClick={() => openDayDetail(date)}
-                title={`${formatDisplayDate(date, "short")}: Level ${summary.level >= 0 ? summary.level : 0}`}
-                className="flex flex-col items-center gap-1 cursor-pointer group"
+                title={`${weekday}, ${formatDisplayDate(date, "short")}: Level ${summary.level >= 0 ? summary.level : 0} (${summary.score} pts)`}
+                className="flex flex-col items-center gap-1.5 cursor-pointer group"
               >
-                <div className="w-5 h-8 bg-white/[0.04] rounded-md overflow-hidden flex items-end">
+                <div className="w-5 sm:w-6 h-9 bg-white/[0.04] rounded-lg overflow-hidden flex items-end p-0.5 border border-white/[0.04] group-hover:border-emerald-500/40 transition-colors">
                   <div
                     className={`w-full rounded-md transition-all duration-300 ${
                       summary.level === 4
@@ -57,13 +60,18 @@ export function WeeklyRecap() {
                         : summary.level === 0
                         ? "bg-zinc-700"
                         : "bg-white/[0.05]"
-                    } group-hover:opacity-80`}
+                    } group-hover:brightness-110`}
                     style={{ height: `${heightPercent}%` }}
                   />
                 </div>
-                <span className={`text-[9px] font-mono ${isDayToday ? "text-emerald-400 font-bold" : "text-zinc-500"}`}>
-                  {formatDisplayDate(date, "short").slice(0, 3)}
-                </span>
+                <div className="flex flex-col items-center leading-none">
+                  <span className={`text-[9px] font-mono font-bold tracking-tight ${isDayToday ? "text-emerald-400 font-extrabold" : "text-zinc-400 group-hover:text-zinc-200"}`}>
+                    {weekday}
+                  </span>
+                  <span className={`text-[8px] font-mono mt-0.5 ${isDayToday ? "text-emerald-300 font-semibold" : "text-zinc-600"}`}>
+                    {dayNum}
+                  </span>
+                </div>
               </div>
             );
           })}

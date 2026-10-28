@@ -219,9 +219,9 @@ function QuickLogModalContent() {
                   placeholder="e.g. 8500"
                   value={stepsInput}
                   onChange={(e) => setStepsInput(e.target.value)}
-                  className="w-full px-4 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white"
+                  className="w-full pl-4 pr-20 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white"
                 />
-                <span className="absolute right-4 top-3.5 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
                   steps
                 </span>
               </div>
@@ -260,9 +260,9 @@ function QuickLogModalContent() {
                   placeholder="e.g. 2000"
                   value={waterInput}
                   onChange={(e) => setWaterInput(e.target.value)}
-                  className="w-full px-4 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-white"
+                  className="w-full pl-4 pr-16 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-white"
                 />
-                <span className="absolute right-4 top-3.5 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
                   ml
                 </span>
               </div>
@@ -317,9 +317,9 @@ function QuickLogModalContent() {
                     placeholder="30"
                     value={workoutDuration}
                     onChange={(e) => setWorkoutDuration(e.target.value)}
-                    className="w-full px-4 py-2.5 text-sm font-mono font-bold bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white"
+                    className="w-full pl-4 pr-18 py-2.5 text-sm font-mono font-bold bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white"
                   />
-                  <span className="absolute right-4 top-2.5 text-xs font-mono text-zinc-500">
+                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
                     mins
                   </span>
                 </div>
@@ -355,9 +355,9 @@ function QuickLogModalContent() {
                   placeholder="e.g. 2100"
                   value={caloriesInput}
                   onChange={(e) => setCaloriesInput(e.target.value)}
-                  className="w-full px-4 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-white"
+                  className="w-full pl-4 pr-18 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-white"
                 />
-                <span className="absolute right-4 top-3.5 text-xs font-mono font-bold text-zinc-500">
+                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
                   kcal
                 </span>
               </div>
