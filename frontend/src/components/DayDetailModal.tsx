@@ -22,8 +22,14 @@ import {
 } from "lucide-react";
 
 export function DayDetailModal() {
+  const { isDayDetailOpen } = useApp();
+  if (!isDayDetailOpen) return null;
+
+  return <DayDetailModalContent />;
+}
+
+function DayDetailModalContent() {
   const {
-    isDayDetailOpen,
     closeDayDetail,
     selectedDate,
     appData,
@@ -45,15 +51,12 @@ export function DayDetailModal() {
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    const origOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = origOverflow;
+      document.body.style.overflow = "";
     };
   }, [closeDayDetail]);
-
-  if (!isDayDetailOpen) return null;
 
   const summary = calculateDaySummary(appData, selectedDate);
   const isSelectedToday = selectedDate === today;

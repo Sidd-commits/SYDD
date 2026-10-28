@@ -55,11 +55,10 @@ function QuickLogModalContent() {
       }
     };
     window.addEventListener("keydown", handleKeyDown);
-    const origOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = origOverflow;
+      document.body.style.overflow = "";
     };
   }, [closeQuickLog]);
 
