@@ -94,34 +94,34 @@ export function MetricCard({
 
       {/* Top Header */}
       <div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className={`p-2.5 rounded-2xl border ${theme.iconBg} ${theme.iconColor}`}>
+        <div className="flex items-center justify-between gap-2 min-w-0">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className={`p-2 rounded-xl border shrink-0 ${theme.iconBg} ${theme.iconColor}`}>
               <Icon className="w-4 h-4" />
             </div>
-            <div>
-              <h3 className="text-xs font-bold tracking-wider text-zinc-400 uppercase font-mono">
+            <div className="min-w-0">
+              <h3 className="text-xs font-bold tracking-wide text-zinc-300 uppercase font-mono truncate">
                 {title}
               </h3>
               {type === "calories" && (
-                <span className="text-[10px] text-zinc-500 font-medium">
+                <span className="text-[10px] text-zinc-500 font-medium block truncate">
                   Informational intake
                 </span>
               )}
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             {isGoalMet && (
-              <span className="flex items-center gap-1 text-[11px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full shadow-xs">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full shadow-xs shrink-0 whitespace-nowrap">
                 <Check className="w-3 h-3 stroke-[3]" />
-                Goal met
+                <span>Goal met</span>
               </span>
             )}
             <button
               onClick={onEdit}
               aria-label={`Edit ${title}`}
-              className="p-1.5 text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] rounded-xl transition-colors cursor-pointer"
+              className="p-1 text-zinc-500 hover:text-zinc-200 hover:bg-white/[0.06] rounded-lg transition-colors cursor-pointer shrink-0"
             >
               <Edit3 className="w-3.5 h-3.5" />
             </button>

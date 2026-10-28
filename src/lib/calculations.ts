@@ -99,55 +99,61 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
     completedHabits.length > 0;
 
   // Calculate Heatmap progress score
+  // Collect progress ratio for each activity pillar that has logged data
   const components: number[] = [];
+  const metGoalsList: boolean[] = [];
 
   if (hasSteps && stepsGoal > 0) {
-    components.push(Math.min(steps / stepsGoal, 1));
+    components.push(steps / stepsGoal);
+    metGoalsList.push(stepsMet);
   }
   if (hasWater && waterGoal > 0) {
-    components.push(Math.min(waterMl / waterGoal, 1));
+    components.push(waterMl / waterGoal);
+    metGoalsList.push(waterMet);
   }
-  // Include habit progress only if there are active habits and the day has habit completions
-  if (activeHabits.length > 0 && hasHabitActivity) {
-    components.push(Math.min(completedHabits.length / activeHabits.length, 1));
-  }
-  // Include workout progress only if workout goal is enabled and workouts were logged
   if (workoutGoalEnabled && hasWorkouts && workoutGoal > 0) {
-    components.push(Math.min(totalWorkoutMinutes / workoutGoal, 1));
+    components.push(totalWorkoutMinutes / workoutGoal);
+    metGoalsList.push(workoutMet);
+  }
+  if (activeHabits.length > 0 && hasHabitActivity) {
+    components.push(completedHabits.length / activeHabits.length);
+    metGoalsList.push(completedHabits.length >= activeHabits.length);
   }
 
   let score = 0;
   let level: -1 | 0 | 1 | 2 | 3 | 4 = -1;
 
   if (!hasData) {
-    level = -1; // No data
+    level = -1; // No data recorded
     score = 0;
   } else if (components.length === 0) {
-    // Has data (e.g. calories or note), but no activity goals scored
+    // Has data (e.g. calories consumed or note), but no physical activity goals scored
     level = 0;
     score = 0;
   } else {
-    const sum = components.reduce((a, b) => a + b, 0);
-    score = sum / components.length;
+    const metCount = metGoalsList.filter(Boolean).length;
+    const anyGoalMet = stepsMet || waterMet || workoutMet || (activeHabits.length > 0 && completedHabits.length >= activeHabits.length);
+    const maxRatio = Math.max(...components);
+    const avgRatio = components.reduce((a, b) => a + b, 0) / components.length;
 
-    if (score >= 1.0 || activeDay) {
-      if (score >= 0.95) {
-        level = 4; // Goal reached
-      } else if (score >= 0.7) {
-        level = 3;
-      } else if (score >= 0.4) {
-        level = 2;
-      } else {
-        level = 1;
-      }
-    } else if (score >= 0.75) {
-      level = 3;
-    } else if (score >= 0.5) {
-      level = 2;
-    } else if (score > 0) {
-      level = 1;
+    // Meeting a primary fitness target ensures top-tier Level 4 recognition and high score
+    if (anyGoalMet || maxRatio >= 1.0) {
+      score = Math.min(1.0, 0.85 + (Math.min(maxRatio, 1.5) - 1.0) * 0.15 + (metCount > 1 ? 0.15 : 0.05 * Math.min(avgRatio, 1.0)));
+      level = 4;
     } else {
-      level = 0;
+      score = Math.min(1.0, Math.max(0, avgRatio));
+
+      if (score >= 0.85) {
+        level = 4;
+      } else if (score >= 0.60) {
+        level = 3;
+      } else if (score >= 0.35 || activeDay) {
+        level = 2;
+      } else if (score > 0) {
+        level = 1;
+      } else {
+        level = 0;
+      }
     }
   }
 

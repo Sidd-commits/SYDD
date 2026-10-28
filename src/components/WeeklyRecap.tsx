@@ -33,17 +33,28 @@ export function WeeklyRecap() {
         <div className="flex items-end gap-2 p-2.5 bg-zinc-900/60 rounded-2xl border border-white/[0.06] self-start sm:self-auto shadow-inner">
           {past7Days.map((date) => {
             const summary = calculateDaySummary(appData, date);
-            const heightPercent = summary.level >= 0 ? Math.max(20, (summary.level / 4) * 100) : 10;
+            // Continuous percentage height (0 to 100%) based on actual progress score
+            const heightPercent = summary.hasData
+              ? Math.min(100, Math.max(14, Math.round(summary.score * 100)))
+              : 0;
             const isDayToday = date === today;
             const d = parseISODate(date);
             const weekday = d.toLocaleDateString("en-US", { weekday: "short" });
             const dayNum = d.getDate();
 
+            // Activity tooltip breakdown
+            const parts: string[] = [];
+            if (summary.workoutMinutes > 0) parts.push(`${summary.workoutMinutes}m workout`);
+            if (summary.steps > 0) parts.push(`${summary.steps.toLocaleString()} steps`);
+            if (summary.waterMl > 0) parts.push(`${summary.waterMl.toLocaleString()} ml water`);
+            if (summary.completedHabits.length > 0) parts.push(`${summary.completedHabits.length} habits`);
+            const detailsText = parts.length > 0 ? parts.join(" • ") : "No activity recorded";
+
             return (
               <div
                 key={date}
                 onClick={() => openDayDetail(date)}
-                title={`${weekday}, ${formatDisplayDate(date, "short")}: Level ${summary.level >= 0 ? summary.level : 0} (${summary.score} pts)`}
+                title={`${weekday}, ${formatDisplayDate(date, "short")}: ${Math.round(summary.score * 100)}% consistency • Level ${summary.level >= 0 ? summary.level : 0} ${summary.activeDay ? "(Active Day)" : ""}\n${detailsText}`}
                 className="flex flex-col items-center gap-1.5 cursor-pointer group"
               >
                 <div className="w-5 sm:w-6 h-9 bg-white/[0.04] rounded-lg overflow-hidden flex items-end p-0.5 border border-white/[0.04] group-hover:border-emerald-500/40 transition-colors">
@@ -59,7 +70,7 @@ export function WeeklyRecap() {
                         ? "bg-emerald-800"
                         : summary.level === 0
                         ? "bg-zinc-700"
-                        : "bg-white/[0.05]"
+                        : "bg-transparent"
                     } group-hover:brightness-110`}
                     style={{ height: `${heightPercent}%` }}
                   />
