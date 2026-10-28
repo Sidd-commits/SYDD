@@ -38,3 +38,4 @@ test("BackendStorageService returns storage metadata", () => {
   assert.ok(meta.dataDir);
   assert.strictEqual(meta.hasBackup, true);
 });
+

@@ -44,13 +44,14 @@ export function validateAndMigrateData(raw: unknown): AppData {
   // Validate records
   const dailyRecords: DailyRecord[] = Array.isArray(data.dailyRecords)
     ? data.dailyRecords
+        .slice(0, 50000)
         .filter((r): r is DailyRecord => Boolean(r && typeof r.date === "string"))
         .map((r) => ({
           date: r.date,
           steps: typeof r.steps === "number" ? Math.max(0, r.steps) : undefined,
           caloriesConsumedKcal: typeof r.caloriesConsumedKcal === "number" ? Math.max(0, r.caloriesConsumedKcal) : undefined,
           waterMl: typeof r.waterMl === "number" ? Math.max(0, r.waterMl) : undefined,
-          notes: typeof r.notes === "string" ? r.notes : undefined,
+          notes: typeof r.notes === "string" ? r.notes.slice(0, 5000) : undefined,
           updatedAt: r.updatedAt || new Date().toISOString(),
         }))
     : [];
@@ -58,23 +59,25 @@ export function validateAndMigrateData(raw: unknown): AppData {
   // Validate workouts
   const workouts: Workout[] = Array.isArray(data.workouts)
     ? data.workouts
+        .slice(0, 50000)
         .filter((w): w is Workout => Boolean(w && typeof w.id === "string" && typeof w.date === "string"))
         .map((w) => ({
           id: w.id,
           date: w.date,
           type: w.type || "other",
           durationMinutes: Math.max(1, Number(w.durationMinutes) || 1),
-          notes: w.notes,
+          notes: typeof w.notes === "string" ? w.notes.slice(0, 5000) : undefined,
           exercises: Array.isArray(w.exercises) && w.exercises.length > 0
             ? w.exercises
+                .slice(0, 100)
                 .filter((ex) => Boolean(ex && typeof ex.name === "string" && ex.name.trim().length > 0))
                 .map((ex) => ({
                   id: ex.id || `ex-${Math.random().toString(36).substring(2, 9)}`,
                   exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : undefined,
-                  name: ex.name.trim(),
-                  notes: typeof ex.notes === "string" ? ex.notes.trim() : undefined,
+                  name: ex.name.trim().slice(0, 200),
+                  notes: typeof ex.notes === "string" ? ex.notes.trim().slice(0, 2000) : undefined,
                   sets: Array.isArray(ex.sets)
-                    ? ex.sets.map((s, idx) => ({
+                    ? ex.sets.slice(0, 100).map((s, idx) => ({
                         id: s.id || `set-${Math.random().toString(36).substring(2, 9)}`,
                         setNumber: typeof s.setNumber === "number" && s.setNumber > 0 ? s.setNumber : idx + 1,
                         reps: Math.max(0, Number(s.reps) || 0),
@@ -93,10 +96,11 @@ export function validateAndMigrateData(raw: unknown): AppData {
   // Validate habits
   const habits: Habit[] = Array.isArray(data.habits) && data.habits.length > 0
     ? data.habits
+        .slice(0, 1000)
         .filter((h): h is Habit => Boolean(h && typeof h.id === "string" && typeof h.name === "string"))
         .map((h) => ({
           id: h.id,
-          name: h.name,
+          name: h.name.slice(0, 200),
           active: h.active !== false,
           createdAt: h.createdAt || new Date().toISOString(),
           archivedAt: h.archivedAt,
@@ -106,6 +110,7 @@ export function validateAndMigrateData(raw: unknown): AppData {
   // Validate habit completions
   const habitCompletions: HabitCompletion[] = Array.isArray(data.habitCompletions)
     ? data.habitCompletions
+        .slice(0, 100000)
         .filter((c): c is HabitCompletion => Boolean(c && typeof c.habitId === "string" && typeof c.date === "string"))
         .map((c) => ({
           habitId: c.habitId,
@@ -187,7 +192,12 @@ export const StorageService = {
       const workoutMins = workouts.reduce((s, w) => s + w.durationMinutes, 0);
       const habitsDone = data.habitCompletions.filter((c) => c.date === date && c.completed).length;
 
-      const safeNotes = rec?.notes ? `"${rec.notes.replace(/"/g, '""')}"` : "";
+      let notesText = rec?.notes ?? "";
+      // Neutralize spreadsheet formula injection characters: =, +, -, @, \t, \r
+      if (notesText && /^[=+\-@\t\r]/.test(notesText)) {
+        notesText = `'${notesText}`;
+      }
+      const safeNotes = notesText ? `"${notesText.replace(/"/g, '""')}"` : "";
 
       rows.push([
         date,

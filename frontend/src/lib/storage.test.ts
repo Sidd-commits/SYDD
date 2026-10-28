@@ -99,3 +99,19 @@ test("validateAndMigrateData preserves granular exercises and handles legacy wor
   assert.strictEqual(migrated.workouts[1].exercises?.[0].sets[0].weight, 60);
   assert.strictEqual(migrated.workouts[1].exercises?.[0].sets[0].completed, true);
 });
+
+test("exportCSV neutralizes formula injection triggers in notes", () => {
+  const data = getDefaultAppData();
+  data.dailyRecords.push({
+    date: "2026-10-28",
+    steps: 10000,
+    caloriesConsumedKcal: 2200,
+    waterMl: 3000,
+    notes: "=cmd|'/C calc'!A0",
+    updatedAt: new Date().toISOString(),
+  });
+
+  const csv = StorageService.exportCSV(data);
+  // Verify leading dangerous formula char '=' is prepended with single apostrophe "'"
+  assert.ok(csv.includes("\"'=cmd|'/C calc'!A0\""));
+});
