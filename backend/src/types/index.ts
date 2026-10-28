@@ -1,8 +1,16 @@
+export interface StorageInfo {
+  type: string;
+  dataDir: string;
+  hasBackup: boolean;
+  lastBackupTimestamp: string | null;
+}
+
 export interface HealthResponse {
   status: "ok" | "degraded";
   service: string;
   uptimeSeconds: number;
   timestamp: string;
+  storage: StorageInfo;
 }
 
 export interface SyncPayload {
@@ -17,4 +25,5 @@ export interface SyncResponse {
   message: string;
   syncedAt: string;
   recordsCount?: number;
+  isDuplicate?: boolean;
 }

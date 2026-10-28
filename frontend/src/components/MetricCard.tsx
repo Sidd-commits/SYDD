@@ -94,13 +94,13 @@ export function MetricCard({
 
       {/* Top Header */}
       <div>
-        <div className="flex items-center justify-between gap-2 min-w-0">
-          <div className="flex items-center gap-2.5 min-w-0">
-            <div className={`p-2 rounded-xl border shrink-0 ${theme.iconBg} ${theme.iconColor}`}>
-              <Icon className="w-4 h-4" />
+        <div className="flex items-center justify-between gap-1.5 sm:gap-2 min-w-0">
+          <div className="flex items-center gap-2 sm:gap-2.5 min-w-0 flex-1">
+            <div className={`p-1.5 sm:p-2 rounded-xl border shrink-0 ${theme.iconBg} ${theme.iconColor}`}>
+              <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
-            <div className="min-w-0">
-              <h3 className="text-xs font-bold tracking-wide text-zinc-300 uppercase font-mono truncate">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs font-bold tracking-wide text-zinc-300 uppercase font-mono truncate" title={title}>
                 {title}
               </h3>
               {type === "calories" && (
@@ -111,11 +111,14 @@ export function MetricCard({
             </div>
           </div>
 
-          <div className="flex items-center gap-1.5 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 shrink-0">
             {isGoalMet && (
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full shadow-xs shrink-0 whitespace-nowrap">
-                <Check className="w-3 h-3 stroke-[3]" />
-                <span>Goal met</span>
+              <span
+                title="Daily goal reached"
+                className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-1.5 sm:px-2 py-0.5 rounded-full shadow-xs shrink-0 whitespace-nowrap select-none leading-none"
+              >
+                <Check className="w-2.5 h-2.5 sm:w-3 sm:h-3 stroke-[3] shrink-0" />
+                <span className="whitespace-nowrap">Goal&nbsp;met</span>
               </span>
             )}
             <button

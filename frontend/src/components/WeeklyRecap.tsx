@@ -57,9 +57,11 @@ export function WeeklyRecap() {
                 title={`${weekday}, ${formatDisplayDate(date, "short")}: ${Math.round(summary.score * 100)}% consistency • Level ${summary.level >= 0 ? summary.level : 0} ${summary.activeDay ? "(Active Day)" : ""}\n${detailsText}`}
                 className="flex flex-col items-center gap-1.5 cursor-pointer group"
               >
-                <div className="w-5 sm:w-6 h-9 bg-white/[0.04] rounded-lg overflow-hidden flex items-end p-0.5 border border-white/[0.04] group-hover:border-emerald-500/40 transition-colors">
+                <div className={`w-5 sm:w-6 h-10 bg-white/[0.04] rounded-lg overflow-hidden flex items-end border transition-all ${
+                  isDayToday ? "border-emerald-500/40 shadow-xs shadow-emerald-500/20" : "border-white/[0.06] group-hover:border-emerald-500/40"
+                }`}>
                   <div
-                    className={`w-full rounded-md transition-all duration-300 ${
+                    className={`w-full rounded-t-sm sm:rounded-t-md transition-all duration-300 ${
                       summary.level === 4
                         ? "bg-emerald-400 shadow-xs shadow-emerald-400/50"
                         : summary.level === 3

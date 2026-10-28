@@ -6,6 +6,7 @@ import { calculateDaySummary } from "@/lib/calculations";
 import { formatDisplayDate } from "@/lib/dateUtils";
 import { MetricCard } from "@/components/MetricCard";
 import { HabitsChecklist } from "@/components/HabitsChecklist";
+import { WeeklyRecap } from "@/components/WeeklyRecap";
 import { ActivityHeatmap } from "@/components/ActivityHeatmap";
 import { FitnessAnalytics } from "@/components/FitnessAnalytics";
 import { OnboardingBanner } from "@/components/OnboardingBanner";
@@ -113,6 +114,9 @@ export function OverviewView() {
 
       {/* Habits Checklist */}
       <HabitsChecklist />
+
+      {/* 7-Day Rolling Analytics Recap */}
+      <WeeklyRecap />
 
       {/* Signature Contribution Heatmap */}
       <ActivityHeatmap />

@@ -21,6 +21,10 @@ import {
   Smartphone,
   CheckCircle2,
   Dumbbell,
+  HardDrive,
+  RefreshCw,
+  Server,
+  Clock,
 } from "lucide-react";
 
 export function SettingsView() {
@@ -33,6 +37,11 @@ export function SettingsView() {
     importJSON,
     clearAllData,
     loadDemoData,
+    syncState,
+    backendHealth,
+    syncWithBackend,
+    restoreFromBackend,
+    checkBackendHealth,
   } = useApp();
 
   const [goalsState, setGoalsState] = useState<Goals>({
@@ -40,6 +49,8 @@ export function SettingsView() {
   });
 
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
+  const [isConfirmRestoreOpen, setIsConfirmRestoreOpen] = useState(false);
+  const [isManualSyncing, setIsManualSyncing] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
   const canInstallPWA = usePWAInstall();
 
@@ -372,6 +383,147 @@ export function SettingsView() {
         </div>
       </div>
 
+      {/* Backend Server Persistence & Synchronization */}
+      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+              <Server className="w-5 h-5" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-white tracking-tight">
+                Backend Server Persistence & Synchronization
+              </h2>
+              <p className="text-xs text-zinc-400">
+                Back up your local fitness records to a local Node.js filesystem service with SHA-256 deduplicated snapshots.
+              </p>
+            </div>
+          </div>
+
+          {/* Connection Status Badge */}
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            {backendHealth?.reachable ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-xs">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>
+                  {syncState === "syncing" || isManualSyncing
+                    ? "Syncing..."
+                    : syncState === "synced"
+                    ? "Synced (Port 5000)"
+                    : "Connected (Port 5000)"}
+                </span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-zinc-800 border border-white/[0.08] text-zinc-400">
+                <span className="w-2 h-2 rounded-full bg-zinc-500" />
+                <span>Server Offline</span>
+              </span>
+            )}
+            <button
+              type="button"
+              onClick={() => checkBackendHealth()}
+              title="Refresh connection status"
+              className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+            >
+              <RefreshCw className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Sync Controls */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          {/* Manual Backup Button */}
+          <button
+            type="button"
+            disabled={isManualSyncing || !backendHealth?.reachable}
+            onClick={async () => {
+              setIsManualSyncing(true);
+              await syncWithBackend();
+              setIsManualSyncing(false);
+            }}
+            className={`flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-left transition-all ${
+              backendHealth?.reachable
+                ? "hover:bg-white/[0.06] hover:border-emerald-500/40 cursor-pointer group"
+                : "opacity-40 cursor-not-allowed"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <HardDrive className={`w-4 h-4 ${isManualSyncing ? "animate-spin" : ""}`} />
+              </div>
+              <div>
+                <span className="text-sm font-bold text-white block group-hover:text-emerald-300 transition-colors">
+                  {isManualSyncing ? "Backing Up..." : "Back Up to Backend"}
+                </span>
+                <span className="text-xs text-zinc-500">
+                  Store snapshot in backend/data/
+                </span>
+              </div>
+            </div>
+            <span className="text-xs font-mono font-bold text-zinc-400 group-hover:text-white transition-colors">
+              Save
+            </span>
+          </button>
+
+          {/* Restore Latest Backup Button */}
+          <button
+            type="button"
+            disabled={!backendHealth?.reachable}
+            onClick={() => setIsConfirmRestoreOpen(true)}
+            className={`flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-left transition-all ${
+              backendHealth?.reachable
+                ? "hover:bg-white/[0.06] hover:border-sky-500/40 cursor-pointer group"
+                : "opacity-40 cursor-not-allowed"
+            }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+                <RefreshCw className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-sm font-bold text-white block group-hover:text-sky-300 transition-colors">
+                  Restore from Server
+                </span>
+                <span className="text-xs text-zinc-500">
+                  Load latest snapshot from disk
+                </span>
+              </div>
+            </div>
+            <span className="text-xs font-mono font-bold text-zinc-400 group-hover:text-white transition-colors">
+              Restore
+            </span>
+          </button>
+        </div>
+
+        {/* Server Metadata & Timestamp */}
+        {backendHealth?.reachable && (
+          <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.06] flex flex-wrap items-center justify-between gap-2 text-xs">
+            <div className="flex items-center gap-2 text-zinc-400">
+              <Clock className="w-3.5 h-3.5 text-zinc-500" />
+              <span>Last Server Snapshot:</span>
+              <strong className="text-zinc-200 font-mono">
+                {backendHealth.lastBackupTimestamp
+                  ? new Date(backendHealth.lastBackupTimestamp).toLocaleString()
+                  : "None recorded yet"}
+              </strong>
+            </div>
+            <span className="text-[11px] font-mono text-zinc-500">
+              Uptime: {Math.floor((backendHealth.uptimeSeconds || 0) / 60)} mins
+            </span>
+          </div>
+        )}
+
+        {/* Architecture & Persistence Notice */}
+        <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/[0.06] text-xs text-zinc-400 space-y-2">
+          <p className="leading-relaxed">
+            <strong className="text-zinc-200">Local Filesystem Storage Architecture:</strong> Backups are saved directly as JSON files inside <code className="text-emerald-400 bg-white/[0.06] px-1.5 py-0.5 rounded">backend/data/</code> on your host machine with rotating backups and SHA-256 deduplication.
+          </p>
+          <p className="leading-relaxed text-zinc-500">
+            <strong>Deployment Note:</strong> Local filesystem persistence works seamlessly in local development, desktop environments, or self-hosted Docker volumes. However, serverless platforms (e.g. Vercel Serverless Functions) use ephemeral read-only filesystems; for multi-user production cloud deployments, a managed database (PostgreSQL/Supabase/Firebase) would be required.
+          </p>
+        </div>
+      </div>
+
       {/* Progressive Web App (PWA) & Mobile Status */}
       <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
@@ -483,6 +635,20 @@ export function SettingsView() {
           setIsConfirmClearOpen(false);
         }}
         onCancel={() => setIsConfirmClearOpen(false)}
+      />
+
+      {/* Restore Server Backup Confirmation Modal */}
+      <ConfirmDialog
+        isOpen={isConfirmRestoreOpen}
+        title="Restore from Server Backup?"
+        message="This action will replace your browser's current fitness records with the latest backup stored on the local backend server. Are you sure you want to proceed?"
+        confirmLabel="Yes, Restore Backup"
+        confirmVariant="primary"
+        onConfirm={async () => {
+          setIsConfirmRestoreOpen(false);
+          await restoreFromBackend();
+        }}
+        onCancel={() => setIsConfirmRestoreOpen(false)}
       />
     </div>
   );

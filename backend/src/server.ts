@@ -1,5 +1,6 @@
 import http from "node:http";
 import { SyncController } from "./controllers/syncController.js";
+import { BackendStorageService } from "./services/storageService.js";
 import { SyncPayload } from "./types/index.js";
 
 const PORT = parseInt(process.env.PORT || "5000", 10);
@@ -73,6 +74,8 @@ const server = http.createServer((req, res) => {
   res.writeHead(404, { "Content-Type": "application/json" });
   res.end(JSON.stringify({ error: "Endpoint not found", path: url.pathname }));
 });
+
+BackendStorageService.init();
 
 server.listen(PORT, () => {
   console.log(`SYDD Backend Service listening on port ${PORT}`);

@@ -1,16 +1,17 @@
+import { BackendStorageService } from "../services/storageService.js";
 import { SyncPayload, SyncResponse, HealthResponse } from "../types/index.js";
 
-// In-memory sync store (can be persisted to SQLite / Postgres in production)
-let latestBackup: SyncPayload | null = null;
 const serverStartTime = Date.now();
 
 export const SyncController = {
   getHealth(): HealthResponse {
+    const storageMeta = BackendStorageService.getStorageMetadata();
     return {
       status: "ok",
       service: "sydd-backend",
       uptimeSeconds: Math.floor((Date.now() - serverStartTime) / 1000),
       timestamp: new Date().toISOString(),
+      storage: storageMeta,
     };
   },
 
@@ -19,10 +20,14 @@ export const SyncController = {
       throw new Error("Invalid sync payload: missing required data field.");
     }
 
-    latestBackup = {
+    const syncTimestamp = payload.timestamp || new Date().toISOString();
+    const enrichedPayload: SyncPayload = {
       ...payload,
-      timestamp: new Date().toISOString(),
+      timestamp: syncTimestamp,
     };
+
+    // Save persistently to filesystem
+    const { isDuplicate } = BackendStorageService.saveBackup(enrichedPayload);
 
     const records = Array.isArray((payload.data as { dailyRecords?: unknown[] }).dailyRecords)
       ? (payload.data as { dailyRecords: unknown[] }).dailyRecords.length
@@ -30,13 +35,16 @@ export const SyncController = {
 
     return {
       success: true,
-      message: "Data synced and backed up successfully.",
-      syncedAt: latestBackup.timestamp,
+      message: isDuplicate
+        ? "Backup is already up-to-date with identical payload."
+        : "Data persistently backed up to local server storage.",
+      syncedAt: syncTimestamp,
       recordsCount: records,
+      isDuplicate,
     };
   },
 
   getLatestBackup(): SyncPayload | null {
-    return latestBackup;
+    return BackendStorageService.getLatest();
   },
 };

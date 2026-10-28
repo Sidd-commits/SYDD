@@ -4,6 +4,7 @@ import React, {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -19,9 +20,10 @@ import {
   WorkoutExercise,
   WorkoutType,
 } from "@/types";
-import { StorageService, getDefaultAppData } from "@/lib/storage";
+import { StorageService, getDefaultAppData, validateAndMigrateData } from "@/lib/storage";
 import { STORAGE_KEY } from "@/lib/constants";
 import { getTodayISODate } from "@/lib/dateUtils";
+import { SyncService, SyncState, BackendHealth } from "@/lib/syncService";
 
 type ToastMessage = {
   id: string;
@@ -76,6 +78,13 @@ type AppContextType = {
   importJSON: (jsonString: string) => boolean;
   clearAllData: () => void;
   loadDemoData: () => void;
+
+  // Backend Sync Actions & Status
+  syncState: SyncState;
+  backendHealth: BackendHealth | null;
+  syncWithBackend: () => Promise<boolean>;
+  restoreFromBackend: () => Promise<boolean>;
+  checkBackendHealth: () => Promise<BackendHealth>;
 };
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -171,10 +180,100 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }, 3500);
   }, [removeToast]);
 
+  const [syncState, setSyncState] = useState<SyncState>("idle");
+  const [backendHealth, setBackendHealth] = useState<BackendHealth | null>(null);
+  const syncDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const checkBackendHealth = useCallback(async (): Promise<BackendHealth> => {
+    const health = await SyncService.checkHealth();
+    setBackendHealth(health);
+    if (!health.reachable) {
+      setSyncState("offline");
+    }
+    return health;
+  }, []);
+
+  // Periodic health check & initial check
+  useEffect(() => {
+    let active = true;
+    const runCheck = async () => {
+      const health = await SyncService.checkHealth();
+      if (active) {
+        setBackendHealth(health);
+        if (!health.reachable) {
+          setSyncState("offline");
+        }
+      }
+    };
+
+    runCheck();
+    const interval = setInterval(runCheck, 30000);
+    return () => {
+      active = false;
+      clearInterval(interval);
+    };
+  }, []);
+
+  const scheduleBackgroundSync = useCallback((data: AppData) => {
+    if (syncDebounceRef.current) {
+      clearTimeout(syncDebounceRef.current);
+    }
+    syncDebounceRef.current = setTimeout(async () => {
+      try {
+        const res = await SyncService.uploadBackup(data);
+        if (res.success) {
+          setSyncState("synced");
+        } else {
+          setSyncState("offline");
+        }
+      } catch {
+        setSyncState("offline");
+      }
+    }, 2000);
+  }, []);
+
+  const syncWithBackend = useCallback(async (): Promise<boolean> => {
+    setSyncState("syncing");
+    const current = getDataSnapshot();
+    const res = await SyncService.uploadBackup(current);
+    if (res.success) {
+      setSyncState("synced");
+      if (res.isDuplicate) {
+        showToast("Backend is already up to date with this device", "info");
+      } else {
+        showToast("Data backed up to local server successfully", "success");
+      }
+      checkBackendHealth();
+      return true;
+    } else {
+      setSyncState("error");
+      showToast(res.message || "Could not sync with local server", "error");
+      return false;
+    }
+  }, [showToast, checkBackendHealth]);
+
+  const restoreFromBackend = useCallback(async (): Promise<boolean> => {
+    setSyncState("syncing");
+    const res = await SyncService.fetchLatestBackup();
+    if (res.success && res.data) {
+      const validated = validateAndMigrateData(res.data);
+      StorageService.save(validated);
+      emitDataChange(validated);
+      setSyncState("synced");
+      showToast("Restored latest data from backend server", "success");
+      return true;
+    } else {
+      setSyncState("error");
+      showToast(res.message || "Failed to retrieve backup from backend", "error");
+      return false;
+    }
+  }, [showToast]);
+
   const updateData = (updater: (prev: AppData) => AppData) => {
     const prev = getDataSnapshot();
     const next = updater(prev);
     emitDataChange(next);
+    scheduleBackgroundSync(next);
   };
 
   const openQuickLog = (metric: "steps" | "calories" | "water" | "workout" = "steps") => {
@@ -544,6 +643,11 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         importJSON,
         clearAllData,
         loadDemoData,
+        syncState,
+        backendHealth,
+        syncWithBackend,
+        restoreFromBackend,
+        checkBackendHealth,
       }}
     >
       {children}
