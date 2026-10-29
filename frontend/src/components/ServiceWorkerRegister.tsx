@@ -89,33 +89,49 @@ export function ServiceWorkerRegister() {
         )
     );
 
-    if ("serviceWorker" in navigator && (window.location.protocol === "https:" || isLocalhost)) {
-      const handleLoad = () => {
-        navigator.serviceWorker
-          .register("/sw.js")
-          .then((registration) => {
-            registration.addEventListener("updatefound", () => {
-              const newWorker = registration.installing;
-              if (!newWorker) return;
-              newWorker.addEventListener("statechange", () => {
-                if (
-                  newWorker.state === "installed" &&
-                  navigator.serviceWorker.controller
-                ) {
-                  console.log("[SYDD] New version available. Refresh to update.");
-                }
-              });
-            });
-          })
-          .catch((error) => {
-            console.warn("[SYDD] Service worker registration notice:", error);
+    if ("serviceWorker" in navigator) {
+      if (isLocalhost && process.env.NODE_ENV === "development") {
+        // In local development, purge stale caches and unregister dev workers to prevent stale asset traps
+        navigator.serviceWorker.getRegistrations().then((registrations) => {
+          for (const reg of registrations) {
+            reg.unregister();
+          }
+        });
+        if ("caches" in window) {
+          caches.keys().then((keys) => {
+            for (const key of keys) {
+              caches.delete(key);
+            }
           });
-      };
+        }
+      } else if (window.location.protocol === "https:" || isLocalhost) {
+        const handleLoad = () => {
+          navigator.serviceWorker
+            .register("/sw.js")
+            .then((registration) => {
+              registration.addEventListener("updatefound", () => {
+                const newWorker = registration.installing;
+                if (!newWorker) return;
+                newWorker.addEventListener("statechange", () => {
+                  if (
+                    newWorker.state === "installed" &&
+                    navigator.serviceWorker.controller
+                  ) {
+                    console.log("[SYDD] New version available. Refresh to update.");
+                  }
+                });
+              });
+            })
+            .catch((error) => {
+              console.warn("[SYDD] Service worker registration notice:", error);
+            });
+        };
 
-      if (document.readyState === "complete") {
-        handleLoad();
-      } else {
-        window.addEventListener("load", handleLoad);
+        if (document.readyState === "complete") {
+          handleLoad();
+        } else {
+          window.addEventListener("load", handleLoad);
+        }
       }
     }
 

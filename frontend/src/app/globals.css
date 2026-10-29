@@ -19,7 +19,7 @@
 
 html {
   color-scheme: dark;
-  overflow-x: clip;
+  overflow-y: scroll;
 }
 
 body {
@@ -27,8 +27,6 @@ body {
   color: var(--text-primary);
   font-family: var(--font-sans);
   min-height: 100vh;
-  overflow-x: clip;
-  overflow-y: auto;
   position: relative;
 }
 

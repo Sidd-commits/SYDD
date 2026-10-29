@@ -1,7 +1,7 @@
 // SYDD Service Worker — Offline Shell & Asset Cache
 // Preserves local-first state, guarantees real-time fitness data integrity
 
-const CACHE_NAME = "sydd-v1";
+const CACHE_NAME = "sydd-v2";
 const PRECACHE_ASSETS = [
   "/",
   "/manifest.webmanifest",
@@ -56,6 +56,11 @@ self.addEventListener("fetch", (event) => {
 
   // Ignore non-http(s) schemes (e.g. chrome-extension://)
   if (!url.protocol.startsWith("http")) return;
+
+  // In local development, bypass SW asset cache completely to avoid serving stale development chunks
+  if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
+    return;
+  }
 
   // Never cache API or sync routes to ensure fitness data integrity
   if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/sync")) {
