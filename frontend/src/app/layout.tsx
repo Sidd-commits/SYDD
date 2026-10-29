@@ -73,8 +73,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`h-full dark ${jakarta.variable} ${mono.variable}`}>
-      <body className="min-h-full flex flex-col bg-[#08090d] text-zinc-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
+    <html lang="en" className={`dark ${jakarta.variable} ${mono.variable}`}>
+      <body className="min-h-screen flex flex-col bg-[#08090d] text-zinc-100 font-sans antialiased selection:bg-emerald-500/30 selection:text-emerald-300">
         <AppProvider>
           {children}
           <ServiceWorkerRegister />

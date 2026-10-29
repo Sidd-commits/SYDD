@@ -165,6 +165,22 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const [isDayDetailOpen, setIsDayDetailOpen] = useState(false);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
+  // Synchronize modal open states with body scroll lock
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      if (isQuickLogOpen || isDayDetailOpen) {
+        document.body.style.overflow = "hidden";
+      } else {
+        document.body.style.overflow = "";
+      }
+    }
+    return () => {
+      if (typeof document !== "undefined") {
+        document.body.style.overflow = "";
+      }
+    };
+  }, [isQuickLogOpen, isDayDetailOpen]);
+
   const toastSeqRef = useRef(0);
 
   const removeToast = useCallback((id: string) => {
