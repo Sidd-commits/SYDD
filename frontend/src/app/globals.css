@@ -7,14 +7,15 @@
 
 :root {
   --bg-base: #08090d;
-  --bg-card: rgba(18, 20, 29, 0.75);
-  --bg-card-hover: rgba(24, 27, 40, 0.85);
-  --border-subtle: rgba(255, 255, 255, 0.08);
+  --bg-surface: #10121a;
+  --bg-surface-elevated: #161822;
+  --border-subtle: rgba(255, 255, 255, 0.07);
+  --border-medium: rgba(255, 255, 255, 0.12);
   --border-glow: rgba(16, 185, 129, 0.35);
   --text-primary: #f4f4f5;
   --text-secondary: #a1a1aa;
   --text-muted: #71717a;
-  --emerald-glow: rgba(16, 185, 129, 0.15);
+  --accent-emerald: #10b981;
 }
 
 html {
@@ -30,50 +31,24 @@ body {
   position: relative;
 }
 
-/* Atmospheric Ambient Glows */
-body::before {
-  content: "";
-  position: fixed;
-  top: -200px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 900px;
-  height: 500px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.09) 0%, rgba(5, 150, 105, 0.03) 40%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-body::after {
-  content: "";
-  position: fixed;
-  bottom: 0;
-  right: -100px;
-  width: 600px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(14, 165, 233, 0.04) 0%, transparent 70%);
-  pointer-events: none;
-  z-index: 0;
-}
-
-/* Glassmorphic Cards */
+/* Obsidian Elevated Surface Cards */
 .glass-card {
-  background: rgba(16, 18, 27, 0.7);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
-  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  background: rgba(16, 18, 26, 0.82);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.04);
+  transition: border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .glass-card:hover {
-  border-color: rgba(255, 255, 255, 0.14);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
 }
 
 .glass-card-interactive:hover {
-  border-color: rgba(16, 185, 129, 0.4);
-  box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.6), 0 0 20px -2px rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.6), 0 0 16px -2px rgba(16, 185, 129, 0.1);
   transform: translateY(-1px);
 }
 
@@ -97,24 +72,9 @@ body::after {
   background: rgba(16, 185, 129, 0.4);
 }
 
-/* Subtle Shimmer for Progress & Badges */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-
-.shimmer-bar {
-  position: relative;
-  overflow: hidden;
-}
-
-.shimmer-bar::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  transform: translateX(-100%);
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.25), transparent);
-  animation: shimmer 2.5s infinite;
+/* Progress Bar Fill */
+.progress-bar-fill {
+  transition: width 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Animations */

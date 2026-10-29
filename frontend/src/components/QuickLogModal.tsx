@@ -123,20 +123,17 @@ function QuickLogModalContent() {
       aria-modal="true"
       aria-labelledby="quick-log-title"
       onClick={closeQuickLog}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
     >
       <div
-        className="bg-[#0e1017] border-t sm:border border-white/[0.12] rounded-t-3xl sm:rounded-3xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
+        className="bg-[#10121a] border-t sm:border border-white/[0.1] rounded-t-2xl sm:rounded-2xl max-w-md w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Glow ambient */}
-        <div className="absolute top-0 right-0 w-48 h-48 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
         {/* Mobile pull indicator */}
-        <div className="sm:hidden w-12 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
+        <div className="sm:hidden w-10 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
 
         {/* Header */}
-        <div className="px-5 py-4 sm:p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
           <div>
             <h2 id="quick-log-title" className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -149,73 +146,73 @@ function QuickLogModalContent() {
           <button
             onClick={closeQuickLog}
             aria-label="Close modal"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Metric Selector Tabs */}
-        <div className="p-2 sm:p-3 bg-zinc-900/60 border-b border-white/[0.06] grid grid-cols-4 gap-1.5 relative z-10">
+        <div className="p-2 bg-zinc-900/60 border-b border-white/[0.06] grid grid-cols-4 gap-1.5">
           <button
             type="button"
             onClick={() => setActiveMetric("steps")}
-            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "steps"
-                ? "bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 shadow-md shadow-emerald-500/10"
+                ? "bg-zinc-800 text-white border border-white/[0.1] shadow-xs"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Footprints className="w-4 h-4 mb-0.5" />
+            <Footprints className="w-4 h-4 mb-0.5 text-emerald-400" />
             <span>Steps</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("water")}
-            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "water"
-                ? "bg-sky-500/15 border border-sky-500/40 text-sky-300 shadow-md shadow-sky-500/10"
+                ? "bg-zinc-800 text-white border border-white/[0.1] shadow-xs"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Droplet className="w-4 h-4 mb-0.5" />
+            <Droplet className="w-4 h-4 mb-0.5 text-sky-400" />
             <span>Water</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("workout")}
-            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "workout"
-                ? "bg-indigo-500/15 border border-indigo-500/40 text-indigo-300 shadow-md shadow-indigo-500/10"
+                ? "bg-zinc-800 text-white border border-white/[0.1] shadow-xs"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Dumbbell className="w-4 h-4 mb-0.5" />
+            <Dumbbell className="w-4 h-4 mb-0.5 text-indigo-400" />
             <span>Workout</span>
           </button>
 
           <button
             type="button"
             onClick={() => setActiveMetric("calories")}
-            className={`flex flex-col items-center justify-center min-h-[44px] py-2 px-1 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+            className={`flex flex-col items-center justify-center py-2 px-1 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
               activeMetric === "calories"
-                ? "bg-amber-500/15 border border-amber-500/40 text-amber-300 shadow-md shadow-amber-500/10"
+                ? "bg-zinc-800 text-white border border-white/[0.1] shadow-xs"
                 : "text-zinc-400 hover:text-white hover:bg-white/[0.04]"
             }`}
           >
-            <Flame className="w-4 h-4 mb-0.5" />
+            <Flame className="w-4 h-4 mb-0.5 text-amber-400" />
             <span>Calories</span>
           </button>
         </div>
 
         {/* Modal Form Body */}
-        <form onSubmit={handleSubmit} className="p-5 flex-1 overflow-y-auto space-y-4 relative z-10">
+        <form onSubmit={handleSubmit} className="p-5 flex-1 overflow-y-auto space-y-4">
           {/* Date Picker Input */}
           <div>
-            <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5 flex items-center gap-1.5">
-              <Calendar className="w-3.5 h-3.5 text-zinc-500" />
+            <label className="block text-xs font-medium text-zinc-300 mb-1.5 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-zinc-400" />
               <span>Record Date</span>
             </label>
             <input
@@ -223,14 +220,14 @@ function QuickLogModalContent() {
               value={logDate}
               max={today}
               onChange={(e) => setLogDate(e.target.value)}
-              className="w-full px-4 py-2.5 text-sm bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white font-mono"
+              className="w-full px-3.5 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-emerald-500/60 focus:outline-none text-white font-mono"
             />
           </div>
 
           {/* Metric-specific controls */}
           {activeMetric === "steps" && (
             <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Total Steps
               </label>
               <div className="relative">
@@ -243,24 +240,25 @@ function QuickLogModalContent() {
                   placeholder="e.g. 8500"
                   value={stepsInput}
                   onChange={(e) => setStepsInput(e.target.value)}
-                  className="w-full pl-4 pr-20 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-emerald-500 focus:outline-none text-white"
+                  className="w-full pl-3.5 pr-16 py-2.5 text-xl font-bold font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-emerald-500/60 focus:outline-none text-white"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   steps
                 </span>
               </div>
 
               {/* Quick increment buttons */}
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-2.5 flex items-center gap-2">
                 {[1000, 2500, 5000].map((amt) => (
                   <button
                     key={amt}
                     type="button"
                     onClick={() => {
                       const cur = parseInt(stepsInput || "0", 10);
-                      setStepsInput(String((isNaN(cur) ? 0 : cur) + amt));
+                      const next = isNaN(cur) ? amt : cur + amt;
+                      setStepsInput(String(next));
                     }}
-                    className="flex-1 py-2 px-2 bg-white/[0.04] hover:bg-emerald-500/15 border border-white/[0.08] hover:border-emerald-500/30 rounded-xl text-xs font-mono font-bold text-zinc-300 hover:text-emerald-300 transition-colors cursor-pointer"
+                    className="flex-1 py-1.5 px-2 bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] text-zinc-300 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   >
                     +{amt.toLocaleString()}
                   </button>
@@ -271,7 +269,7 @@ function QuickLogModalContent() {
 
           {activeMetric === "water" && (
             <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Water Volume (ml)
               </label>
               <div className="relative">
@@ -284,14 +282,14 @@ function QuickLogModalContent() {
                   placeholder="e.g. 2000"
                   value={waterInput}
                   onChange={(e) => setWaterInput(e.target.value)}
-                  className="w-full pl-4 pr-16 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-sky-500 focus:outline-none text-white"
+                  className="w-full pl-3.5 pr-14 py-2.5 text-xl font-bold font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-sky-500/60 focus:outline-none text-white"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   ml
                 </span>
               </div>
 
-              <div className="mt-3 flex items-center gap-2">
+              <div className="mt-2.5 flex items-center gap-2">
                 {[250, 500, 750].map((amt) => (
                   <button
                     key={amt}
@@ -300,7 +298,7 @@ function QuickLogModalContent() {
                       const cur = parseInt(waterInput || "0", 10);
                       setWaterInput(String((isNaN(cur) ? 0 : cur) + amt));
                     }}
-                    className="flex-1 py-2 px-2 bg-sky-500/10 hover:bg-sky-500/20 border border-sky-500/20 rounded-xl text-xs font-mono font-bold text-sky-300 transition-colors cursor-pointer"
+                    className="flex-1 py-1.5 px-2 bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] text-zinc-300 hover:text-white rounded-lg text-xs font-medium transition-colors cursor-pointer"
                   >
                     +{amt} ml
                   </button>
@@ -310,15 +308,15 @@ function QuickLogModalContent() {
           )}
 
           {activeMetric === "workout" && (
-            <div className="space-y-3.5">
+            <div className="space-y-3">
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                   Workout Category
                 </label>
                 <select
                   value={workoutType}
                   onChange={(e) => setWorkoutType(e.target.value as WorkoutType)}
-                  className="w-full px-4 py-2.5 text-sm bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white cursor-pointer"
+                  className="w-full px-3 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-indigo-500/60 focus:outline-none text-white cursor-pointer"
                 >
                   <option value="walking" className="bg-zinc-900">Walking</option>
                   <option value="running" className="bg-zinc-900">Running</option>
@@ -330,7 +328,7 @@ function QuickLogModalContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                   Duration (minutes)
                 </label>
                 <div className="relative">
@@ -341,16 +339,16 @@ function QuickLogModalContent() {
                     placeholder="30"
                     value={workoutDuration}
                     onChange={(e) => setWorkoutDuration(e.target.value)}
-                    className="w-full pl-4 pr-18 py-2.5 text-sm font-mono font-bold bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white"
+                    className="w-full pl-3.5 pr-14 py-2 text-sm font-mono font-semibold bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-indigo-500/60 focus:outline-none text-white"
                   />
-                  <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                     mins
                   </span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                   Workout Notes (optional)
                 </label>
                 <input
@@ -358,7 +356,7 @@ function QuickLogModalContent() {
                   placeholder="e.g. Outdoor 5k tempo, heavy leg day"
                   value={workoutNotes}
                   onChange={(e) => setWorkoutNotes(e.target.value)}
-                  className="w-full px-4 py-2.5 text-sm bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-indigo-500 focus:outline-none text-white"
+                  className="w-full px-3 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-indigo-500/60 focus:outline-none text-white placeholder:text-zinc-500"
                 />
               </div>
 
@@ -373,7 +371,7 @@ function QuickLogModalContent() {
 
           {activeMetric === "calories" && (
             <div>
-              <label className="block text-xs font-bold text-zinc-400 uppercase tracking-wider font-mono mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Calories Consumed (kcal)
               </label>
               <div className="relative">
@@ -386,40 +384,40 @@ function QuickLogModalContent() {
                   placeholder="e.g. 2100"
                   value={caloriesInput}
                   onChange={(e) => setCaloriesInput(e.target.value)}
-                  className="w-full pl-4 pr-18 py-3 text-xl font-bold font-mono bg-white/[0.04] border border-white/[0.1] rounded-2xl focus:ring-2 focus:ring-amber-500 focus:outline-none text-white"
+                  className="w-full pl-3.5 pr-14 py-2.5 text-xl font-bold font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2.5 py-1 rounded-xl pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   kcal
                 </span>
               </div>
-              <p className="mt-2 text-[11px] text-zinc-500">
-                Informational intake reference only. SYDD does not provide clinical or medical advice.
+              <p className="mt-1.5 text-xs text-zinc-400">
+                Informational intake reference only.
               </p>
             </div>
           )}
 
           {/* Validation Error Message */}
           {errorMsg && (
-            <div className="p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
+            <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs">
               {errorMsg}
             </div>
           )}
 
           {/* Submit Actions */}
-          <div className="pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] flex items-center justify-end gap-2.5">
+          <div className="pt-3 pb-[max(0.5rem,env(safe-area-inset-bottom,0.5rem))] flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={closeQuickLog}
-              className="min-h-[44px] px-4 py-2.5 text-zinc-400 hover:text-white text-xs font-bold rounded-2xl transition-colors cursor-pointer"
+              className="px-3.5 py-2 text-zinc-400 hover:text-white text-xs font-medium rounded-lg transition-colors cursor-pointer"
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="min-h-[44px] px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
+              className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded-lg shadow-xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
             >
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>Save Entry</span>
+              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+              <span>Save Record</span>
             </button>
           </div>
         </form>

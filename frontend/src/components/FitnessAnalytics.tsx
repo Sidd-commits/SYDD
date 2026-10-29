@@ -140,16 +140,16 @@ export function FitnessAnalytics() {
   return (
     <div className="space-y-6">
       {/* Main Analytics Card */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-6">
+      <div className="glass-card rounded-xl p-4 sm:p-6 shadow-xs space-y-5">
         {/* Card Header & Controls */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-emerald-400" />
                 <span>Performance & Trends</span>
               </h2>
-              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 {rangeData.consistencyRate}% Consistent
               </span>
             </div>
@@ -159,15 +159,15 @@ export function FitnessAnalytics() {
           </div>
 
           {/* Time Range Selector */}
-          <div className="flex items-center gap-1 p-1 bg-zinc-900/80 border border-white/[0.08] rounded-2xl self-start md:self-auto">
+          <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-white/[0.08] rounded-lg self-start md:self-auto">
             {([7, 14, 30] as TimeRange[]).map((r) => (
               <button
                 key={r}
                 type="button"
                 onClick={() => setTimeRange(r)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition-all cursor-pointer ${
+                className={`px-2.5 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                   timeRange === r
-                    ? "bg-emerald-500 text-zinc-950 shadow-sm"
+                    ? "bg-zinc-800 text-white border border-white/[0.08] shadow-xs"
                     : "text-zinc-400 hover:text-white"
                 }`}
               >
@@ -193,16 +193,16 @@ export function FitnessAnalytics() {
                 key={m.key}
                 type="button"
                 onClick={() => setActiveMetric(m.key)}
-                className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                className={`p-2.5 rounded-lg border text-left transition-all cursor-pointer ${
                   isSelected
-                    ? "bg-white/[0.06] border-emerald-500/40 text-white shadow-sm shadow-emerald-500/10"
-                    : "bg-white/[0.02] border-white/[0.06] text-zinc-400 hover:text-white hover:bg-white/[0.04]"
+                    ? "bg-zinc-800/90 border-white/[0.12] text-white shadow-xs"
+                    : "bg-zinc-900/40 border-white/[0.06] text-zinc-400 hover:text-white hover:bg-zinc-900/70"
                 }`}
               >
-                <span className="text-[11px] font-mono font-bold block opacity-70">
+                <span className="text-xs font-medium block text-zinc-400">
                   {m.label}
                 </span>
-                <span className="text-sm font-black font-mono tracking-tight block mt-0.5 text-white">
+                <span className="text-sm font-bold font-mono tracking-tight block mt-0.5 text-white">
                   {m.sub}
                 </span>
               </button>
@@ -211,7 +211,7 @@ export function FitnessAnalytics() {
         </div>
 
         {/* SVG Interactive Chart */}
-        <div className="relative p-2 bg-zinc-950/60 rounded-2xl border border-white/[0.06] overflow-hidden">
+        <div className="relative p-2 bg-zinc-950/70 rounded-lg border border-white/[0.06] overflow-hidden">
           {!hasAnyMetricData ? (
             <div className="h-52 flex flex-col items-center justify-center text-center p-6 space-y-2">
               <Sparkles className="w-7 h-7 text-zinc-600" />
@@ -384,17 +384,17 @@ export function FitnessAnalytics() {
       {/* Two-Column Showcase: Verified Personal Records (PRs) & Monthly Recap */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Personal Records Trophy Showcase */}
-        <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-xl space-y-4">
+        <div className="glass-card rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-8 h-8 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 flex items-center justify-center">
                 <Trophy className="w-4 h-4" />
               </div>
               <div>
                 <h3 className="text-sm font-bold text-white tracking-tight">
                   Verified Personal Records
                 </h3>
-                <p className="text-[11px] text-zinc-400">
+                <p className="text-xs text-zinc-400">
                   All-time peaks calculated from your verified local logs.
                 </p>
               </div>
@@ -403,62 +403,62 @@ export function FitnessAnalytics() {
 
           <div className="grid grid-cols-2 gap-2.5">
             {/* Best Streak */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-              <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] font-mono">
+            <div className="p-3 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
                 <Flame className="w-3.5 h-3.5 text-amber-400" />
                 <span>Best Streak</span>
               </div>
-              <div className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-xl font-mono font-black text-white">
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-lg font-mono font-bold text-white">
                   {prs.bestStreak}
                 </span>
-                <span className="text-xs text-zinc-500">days</span>
+                <span className="text-xs text-zinc-400">days</span>
               </div>
             </div>
 
             {/* Peak Steps */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-              <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] font-mono">
+            <div className="p-3 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
                 <Footprints className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Peak Steps</span>
               </div>
-              <div className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-xl font-mono font-black text-white">
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-lg font-mono font-bold text-white">
                   {prs.maxStepsDay.steps > 0 ? prs.maxStepsDay.steps.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-zinc-500">steps</span>
+                <span className="text-xs text-zinc-400">steps</span>
               </div>
             </div>
 
             {/* Peak Single Workout Volume */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-              <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] font-mono">
+            <div className="p-3 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
                 <Dumbbell className="w-3.5 h-3.5 text-indigo-400" />
                 <span>Max Volume</span>
               </div>
-              <div className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-xl font-mono font-black text-white">
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-lg font-mono font-bold text-white">
                   {prs.maxSingleWorkoutVolume.volume > 0
                     ? prs.maxSingleWorkoutVolume.volume.toLocaleString()
                     : "—"}
                 </span>
-                <span className="text-xs text-zinc-500">{unitWeight}</span>
+                <span className="text-xs text-zinc-400">{unitWeight}</span>
               </div>
             </div>
 
             {/* Total Volume Lifted */}
-            <div className="p-3.5 rounded-2xl bg-white/[0.02] border border-white/[0.08]">
-              <div className="flex items-center gap-1.5 text-zinc-400 text-[11px] font-mono">
+            <div className="p-3 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+              <div className="flex items-center gap-1.5 text-zinc-400 text-xs font-medium">
                 <Award className="w-3.5 h-3.5 text-teal-400" />
                 <span>All-Time Volume</span>
               </div>
-              <div className="mt-1.5 flex items-baseline gap-1">
-                <span className="text-xl font-mono font-black text-white">
+              <div className="mt-1 flex items-baseline gap-1">
+                <span className="text-lg font-mono font-bold text-white">
                   {prs.totalAllTimeVolume > 0
                     ? prs.totalAllTimeVolume.toLocaleString()
                     : "—"}
                 </span>
-                <span className="text-xs text-zinc-500">{unitWeight}</span>
+                <span className="text-xs text-zinc-400">{unitWeight}</span>
               </div>
             </div>
           </div>
@@ -466,19 +466,19 @@ export function FitnessAnalytics() {
           {/* Top Exercise PR Badges */}
           {prs.exercisePRs.length > 0 && (
             <div className="pt-2 border-t border-white/[0.06] space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-zinc-500 uppercase tracking-wider block">
+              <span className="text-xs font-medium text-zinc-400 block">
                 Top Exercise Heaviest Lifts
               </span>
               <div className="space-y-1.5 max-h-36 overflow-y-auto custom-scrollbar pr-1">
                 {prs.exercisePRs.slice(0, 5).map((pr) => (
                   <div
                     key={pr.exerciseName}
-                    className="p-2 rounded-xl bg-white/[0.02] border border-white/[0.06] flex items-center justify-between text-xs"
+                    className="p-2 rounded-lg bg-zinc-900/50 border border-white/[0.06] flex items-center justify-between text-xs"
                   >
-                    <span className="font-semibold text-white truncate mr-2">
+                    <span className="font-medium text-zinc-200 truncate mr-2">
                       {pr.exerciseName}
                     </span>
-                    <span className="font-mono font-bold text-emerald-400 shrink-0">
+                    <span className="font-mono font-semibold text-emerald-400 shrink-0">
                       {pr.maxWeight} {pr.weightUnit} × {pr.reps} reps
                     </span>
                   </div>
@@ -489,39 +489,39 @@ export function FitnessAnalytics() {
         </div>
 
         {/* Monthly Summary Card */}
-        <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-xl space-y-4 flex flex-col justify-between">
+        <div className="glass-card rounded-xl p-4 sm:p-5 shadow-xs space-y-4 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center">
                   <Calendar className="w-4 h-4" />
                 </div>
                 <div>
                   <h3 className="text-sm font-bold text-white tracking-tight">
                     {monthly.monthName} Overview
                   </h3>
-                  <p className="text-[11px] text-zinc-400">
+                  <p className="text-xs text-zinc-400">
                     Month-to-date habit and consistency accumulation.
                   </p>
                 </div>
               </div>
 
-              <span className="text-xs font-mono font-bold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <span className="text-xs font-mono font-medium px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
                 {monthly.consistencyPercent}% Stacked
               </span>
             </div>
 
             {/* Monthly Progress Bar */}
-            <div className="space-y-1.5 mb-5">
-              <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400">
+            <div className="space-y-1.5 mb-4">
+              <div className="flex items-center justify-between text-xs text-zinc-400">
                 <span>Active Days Consistency</span>
-                <span>
+                <span className="font-mono text-zinc-300">
                   {monthly.activeDays} / {monthly.totalDaysSoFar} days
                 </span>
               </div>
-              <div className="h-2 w-full bg-white/[0.05] rounded-full overflow-hidden p-0.5 border border-white/[0.04]">
+              <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
+                  className="h-full bg-emerald-500 rounded-full transition-all duration-300"
                   style={{ width: `${monthly.consistencyPercent}%` }}
                 />
               </div>
@@ -529,38 +529,38 @@ export function FitnessAnalytics() {
 
             {/* 3 Monthly Metric Stats */}
             <div className="grid grid-cols-3 gap-2 text-center">
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase block">
+              <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+                <span className="text-xs font-medium text-zinc-400 block">
                   Steps
                 </span>
-                <span className="text-sm sm:text-base font-black font-mono text-white block mt-1">
+                <span className="text-sm sm:text-base font-bold font-mono text-white block mt-1">
                   {monthly.totalSteps > 0 ? monthly.totalSteps.toLocaleString() : "0"}
                 </span>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase block">
+              <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+                <span className="text-xs font-medium text-zinc-400 block">
                   Workouts
                 </span>
-                <span className="text-sm sm:text-base font-black font-mono text-white block mt-1">
+                <span className="text-sm sm:text-base font-bold font-mono text-white block mt-1">
                   {monthly.totalWorkouts}
                 </span>
               </div>
 
-              <div className="p-3 rounded-2xl bg-white/[0.02] border border-white/[0.06]">
-                <span className="text-[10px] font-mono text-zinc-500 uppercase block">
+              <div className="p-2.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
+                <span className="text-xs font-medium text-zinc-400 block">
                   Volume
                 </span>
-                <span className="text-sm sm:text-base font-black font-mono text-white block mt-1 truncate">
+                <span className="text-sm sm:text-base font-bold font-mono text-white block mt-1 truncate">
                   {monthly.totalVolume > 0 ? monthly.totalVolume.toLocaleString() : "0"}
                 </span>
               </div>
             </div>
           </div>
 
-          <div className="p-3 rounded-xl bg-white/[0.02] border border-white/[0.05] flex items-center justify-between text-xs text-zinc-400">
+          <div className="p-2.5 rounded-lg bg-zinc-900/40 border border-white/[0.05] flex items-center justify-between text-xs text-zinc-400">
             <span>Show up every day to build long-term momentum.</span>
-            <ChevronRight className="w-4 h-4 text-zinc-600" />
+            <ChevronRight className="w-4 h-4 text-zinc-500" />
           </div>
         </div>
       </div>

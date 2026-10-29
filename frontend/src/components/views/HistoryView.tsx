@@ -52,7 +52,7 @@ export function HistoryView() {
       {/* View Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight">
             Activity History & Logs
           </h1>
           <p className="text-xs sm:text-sm text-zinc-400 mt-0.5">
@@ -63,21 +63,21 @@ export function HistoryView() {
         {/* Quick Log Action */}
         <button
           onClick={() => openQuickLog("steps")}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer self-start sm:self-auto active:scale-95"
+          className="flex items-center gap-1.5 px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded-lg shadow-xs transition-all cursor-pointer self-start sm:self-auto active:scale-95"
         >
-          <Plus className="w-3.5 h-3.5 stroke-[3]" />
+          <Plus className="w-3.5 h-3.5 stroke-[2.5]" />
           <span>Log Past Activity</span>
         </button>
       </div>
 
       {/* Sub-view switcher */}
-      <div className="flex items-center gap-1.5 p-1 bg-zinc-900/80 border border-white/[0.08] rounded-2xl w-fit">
+      <div className="flex items-center gap-1 p-1 bg-zinc-900 border border-white/[0.08] rounded-lg w-fit">
         <button
           type="button"
           onClick={() => setViewTab("logs")}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
             viewTab === "logs"
-              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-xs"
+              ? "bg-zinc-800 text-white border border-white/[0.08] shadow-xs"
               : "text-zinc-400 hover:text-white"
           }`}
         >
@@ -87,9 +87,9 @@ export function HistoryView() {
         <button
           type="button"
           onClick={() => setViewTab("analytics")}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
             viewTab === "analytics"
-              ? "bg-zinc-800 text-emerald-400 border border-emerald-500/30 shadow-xs"
+              ? "bg-zinc-800 text-white border border-white/[0.08] shadow-xs"
               : "text-zinc-400 hover:text-white"
           }`}
         >
@@ -103,112 +103,112 @@ export function HistoryView() {
       ) : (
         <>
           {/* Filter and search controls */}
-          <div className="p-3 bg-zinc-900/60 backdrop-blur-xl border border-white/[0.08] rounded-2xl flex flex-wrap items-center justify-between gap-3 shadow-inner">
-        <div className="flex items-center gap-1.5 bg-black/40 p-1 rounded-xl text-xs font-semibold">
-          <button
-            onClick={() => setFilterMode("all")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              filterMode === "all"
-                ? "bg-zinc-800 text-white shadow-xs border border-white/[0.1]"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            All Recorded Days ({sortedDates.length})
-          </button>
-          <button
-            onClick={() => setFilterMode("active")}
-            className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-              filterMode === "active"
-                ? "bg-emerald-500/20 text-emerald-300 shadow-xs border border-emerald-500/30"
-                : "text-zinc-400 hover:text-white"
-            }`}
-          >
-            Active Days Only
-          </button>
-        </div>
-
-        {/* Jump to Date Picker */}
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-zinc-400 font-mono hidden sm:inline">Jump to:</span>
-          <input
-            type="date"
-            max={today}
-            value={searchDate}
-            onChange={(e) => setSearchDate(e.target.value)}
-            className="px-3.5 py-1.5 bg-white/[0.04] border border-white/[0.1] rounded-xl text-xs text-white font-mono focus:outline-none focus:ring-2 focus:ring-emerald-500"
-          />
-          {searchDate && (
-            <button
-              onClick={() => setSearchDate("")}
-              className="text-zinc-400 hover:text-white text-xs font-bold cursor-pointer"
-            >
-              Clear
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Days List */}
-      {filteredDates.length === 0 ? (
-        <div className="text-center py-14 glass-card rounded-3xl p-6 border-dashed border-white/[0.1]">
-          <Calendar className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
-          <h3 className="text-sm font-bold text-zinc-300">
-            No matching dates found
-          </h3>
-          <p className="text-xs text-zinc-500 mt-1">
-            Try adjusting your search date or log an activity for that date.
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-2.5">
-          {filteredDates.map((date) => {
-            const summary = calculateDaySummary(appData, date);
-            const isCurrentToday = date === today;
-
-            return (
-              <div
-                key={date}
-                onClick={() => openDayDetail(date)}
-                className="glass-card glass-card-interactive rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 cursor-pointer group"
+          <div className="p-3 bg-zinc-900/80 border border-white/[0.08] rounded-xl flex flex-wrap items-center justify-between gap-3 shadow-xs">
+            <div className="flex items-center gap-1.5 bg-zinc-950/60 p-1 rounded-lg text-xs font-medium">
+              <button
+                onClick={() => setFilterMode("all")}
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                  filterMode === "all"
+                    ? "bg-zinc-800 text-white shadow-xs border border-white/[0.08]"
+                    : "text-zinc-400 hover:text-white"
+                }`}
               >
-                {/* Date and Badge */}
-                <div className="flex items-center gap-3.5">
+                All Recorded Days ({sortedDates.length})
+              </button>
+              <button
+                onClick={() => setFilterMode("active")}
+                className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                  filterMode === "active"
+                    ? "bg-emerald-500/15 text-emerald-300 shadow-xs border border-emerald-500/30"
+                    : "text-zinc-400 hover:text-white"
+                }`}
+              >
+                Active Days Only
+              </button>
+            </div>
+
+            {/* Jump to Date Picker */}
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-zinc-400 hidden sm:inline">Jump to:</span>
+              <input
+                type="date"
+                max={today}
+                value={searchDate}
+                onChange={(e) => setSearchDate(e.target.value)}
+                className="px-3 py-1 bg-zinc-950 border border-white/[0.1] rounded-lg text-xs text-white font-mono focus:outline-none focus:border-emerald-500/60"
+              />
+              {searchDate && (
+                <button
+                  onClick={() => setSearchDate("")}
+                  className="text-zinc-400 hover:text-white text-xs font-semibold cursor-pointer"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Days List */}
+          {filteredDates.length === 0 ? (
+            <div className="text-center py-12 glass-card rounded-xl p-6 border-dashed border-white/[0.08]">
+              <Calendar className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
+              <h3 className="text-sm font-semibold text-zinc-300">
+                No matching dates found
+              </h3>
+              <p className="text-xs text-zinc-400 mt-1">
+                Try adjusting your search date or log an activity for that date.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {filteredDates.map((date) => {
+                const summary = calculateDaySummary(appData, date);
+                const isCurrentToday = date === today;
+
+                return (
                   <div
-                    className={`w-3.5 h-11 rounded-full shrink-0 shadow-xs ${
-                      summary.level === 4
-                        ? "bg-emerald-400 shadow-emerald-400/50"
-                        : summary.level === 3
-                        ? "bg-emerald-500 shadow-emerald-500/40"
-                        : summary.level === 2
-                        ? "bg-emerald-600"
-                        : summary.level === 1
-                        ? "bg-emerald-800"
-                        : summary.level === 0
-                        ? "bg-zinc-700"
-                        : "bg-zinc-900 border border-dashed border-white/20"
-                    }`}
-                  />
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm sm:text-base font-bold text-white tracking-tight">
-                        {formatDisplayDate(date, "medium")}
-                      </span>
-                      {isCurrentToday && (
-                        <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
-                          Today
+                    key={date}
+                    onClick={() => openDayDetail(date)}
+                    className="glass-card glass-card-interactive rounded-xl p-3.5 sm:p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer group"
+                  >
+                    {/* Date and Badge */}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-2 h-9 rounded-full shrink-0 ${
+                          summary.level === 4
+                            ? "bg-emerald-400 shadow-xs shadow-emerald-400/50"
+                            : summary.level === 3
+                            ? "bg-emerald-500"
+                            : summary.level === 2
+                            ? "bg-emerald-600"
+                            : summary.level === 1
+                            ? "bg-emerald-800"
+                            : summary.level === 0
+                            ? "bg-zinc-700"
+                            : "bg-zinc-800 border border-dashed border-white/20"
+                        }`}
+                      />
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-white tracking-tight">
+                            {formatDisplayDate(date, "medium")}
+                          </span>
+                          {isCurrentToday && (
+                            <span className="text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/25 px-1.5 py-0.2 rounded-md">
+                              Today
+                            </span>
+                          )}
+                          {summary.activeDay && (
+                            <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-1.5 py-0.2 rounded-md">
+                              Active Day
+                            </span>
+                          )}
+                        </div>
+                        <span className="text-xs text-zinc-400 font-mono">
+                          {date}
                         </span>
-                      )}
-                      {summary.activeDay && (
-                        <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
-                          Active Day
-                        </span>
-                      )}
+                      </div>
                     </div>
-                    <span className="text-xs text-zinc-500 font-mono">
-                      {date}
-                    </span>
-                  </div>
-                </div>
 
                 {/* Metrics Breakdown Chips */}
                 <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">

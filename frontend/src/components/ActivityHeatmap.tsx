@@ -53,28 +53,28 @@ export function ActivityHeatmap() {
     let bg = "";
     switch (level) {
       case -1:
-        bg = "bg-zinc-900/70 border border-white/[0.06] hover:border-white/30";
+        bg = "bg-zinc-900/80 border border-white/[0.06] hover:border-white/30";
         break;
       case 0:
         bg = "bg-zinc-800 border border-zinc-700/60 hover:border-zinc-500";
         break;
       case 1:
-        bg = "bg-emerald-950 border border-emerald-800/80 hover:ring-2 hover:ring-emerald-700";
+        bg = "bg-emerald-950 border border-emerald-800/80 hover:ring-1 hover:ring-emerald-700";
         break;
       case 2:
-        bg = "bg-emerald-700 border border-emerald-600 shadow-xs hover:ring-2 hover:ring-emerald-500";
+        bg = "bg-emerald-700 border border-emerald-600 hover:ring-1 hover:ring-emerald-500";
         break;
       case 3:
-        bg = "bg-emerald-500 border border-emerald-400 shadow-xs hover:ring-2 hover:ring-emerald-300";
+        bg = "bg-emerald-500 border border-emerald-400 hover:ring-1 hover:ring-emerald-300";
         break;
       case 4:
-        bg = "bg-emerald-400 border border-emerald-300 shadow-md shadow-emerald-500/50 hover:ring-2 hover:ring-emerald-200 animate-pulse-glow";
+        bg = "bg-emerald-400 border border-emerald-300 shadow-xs hover:ring-1 hover:ring-emerald-200";
         break;
     }
 
     const todayRing = isToday ? "ring-2 ring-emerald-400 ring-offset-2 ring-offset-[#08090d]" : "";
 
-    return `${bg} ${todayRing} cursor-pointer transition-all duration-150 rounded-[3px] focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none`;
+    return `${bg} ${todayRing} cursor-pointer transition-all duration-150 rounded-[2px] focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:outline-none`;
   };
 
   const getAccessibleLabel = (date: ISODate, level: number, isFuture: boolean) => {
@@ -86,20 +86,20 @@ export function ActivityHeatmap() {
   };
 
   return (
-    <div className="glass-card rounded-3xl p-5 sm:p-6 shadow-xl relative">
+    <div className="glass-card rounded-xl p-4 sm:p-6 shadow-xs relative min-w-0 overflow-hidden">
       {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
           <div className="flex items-center gap-2">
-            <h2 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
+            <h2 className="text-sm sm:text-base font-bold text-white tracking-tight flex items-center gap-2">
               <span>Consistency Grid</span>
-              <span className="text-[10px] font-mono uppercase bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+              <span className="text-xs font-mono font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md">
                 53 Weeks
               </span>
             </h2>
             <button
               onClick={() => setShowFormula(!showFormula)}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+              className="text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
               aria-label="How is the consistency grid scored?"
               title="Scoring formula info"
             >
@@ -111,23 +111,23 @@ export function ActivityHeatmap() {
           </p>
         </div>
 
-        {/* Year Selector & Streak Stats */}
+        {/* Year Selector & Controls */}
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <div className="flex items-center border border-white/[0.08] rounded-xl overflow-hidden text-xs font-semibold bg-zinc-900/80">
+          <div className="flex items-center border border-white/[0.08] rounded-lg overflow-hidden text-xs font-semibold bg-zinc-900">
             <button
               onClick={() => setUserYear((y) => (y ?? currentYear) - 1)}
-              className="p-2 hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 hover:bg-white/[0.06] text-zinc-400 hover:text-white transition-colors cursor-pointer"
               aria-label="Previous Year"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-3 py-1 font-mono text-zinc-200 font-bold tabular-nums">
+            <span className="px-2.5 py-1 font-mono text-zinc-200 font-bold tabular-nums">
               {selectedYear}
             </span>
             <button
               onClick={() => setUserYear((y) => Math.min(currentYear, (y ?? currentYear) + 1))}
               disabled={selectedYear >= currentYear}
-              className={`p-2 transition-colors ${
+              className={`p-1.5 transition-colors ${
                 selectedYear >= currentYear
                   ? "opacity-20 cursor-not-allowed text-zinc-600"
                   : "hover:bg-white/[0.06] text-zinc-400 hover:text-white cursor-pointer"
@@ -167,7 +167,7 @@ export function ActivityHeatmap() {
       >
         <div className="inline-block min-w-max select-none">
           {/* Month Labels Row */}
-          <div className="flex text-[11px] font-mono text-zinc-500 mb-2 ml-7">
+          <div className="flex text-xs font-mono text-zinc-400 mb-2 ml-7">
             {weeks.map((week, idx) => (
               <div
                 key={`month-${idx}`}
@@ -181,7 +181,7 @@ export function ActivityHeatmap() {
           {/* Grid rows (7 days: Mon -> Sun) */}
           <div className="flex">
             {/* Weekday Labels (Mon, Wed, Fri) */}
-            <div className="flex flex-col justify-between text-[10px] font-mono font-semibold text-zinc-500 mr-2 h-[106px] py-[2px] leading-none">
+            <div className="flex flex-col justify-between text-xs font-medium text-zinc-400 mr-2 h-[106px] py-[2px] leading-none">
               <span>Mon</span>
               <span className="opacity-0">Tue</span>
               <span>Wed</span>
@@ -248,16 +248,16 @@ export function ActivityHeatmap() {
       {/* Floating Hover Tooltip */}
       {hoveredCell && (
         <div
-          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 bg-zinc-900/95 border border-white/20 backdrop-blur-xl rounded-2xl p-3 shadow-2xl text-xs space-y-1 w-48 animate-fade-in"
+          className="fixed z-50 pointer-events-none transform -translate-x-1/2 -translate-y-full mb-2 bg-[#12141d] border border-white/[0.12] rounded-xl p-3 shadow-xl text-xs space-y-1 w-48 animate-fade-in"
           style={{
             left: `${hoveredCell.x}px`,
             top: `${hoveredCell.y - 8}px`,
           }}
         >
-          <div className="font-bold text-white flex items-center justify-between border-b border-white/[0.08] pb-1">
+          <div className="font-semibold text-white flex items-center justify-between border-b border-white/[0.08] pb-1">
             <span>{formatDisplayDate(hoveredCell.date, "short")}</span>
             <span
-              className={`text-[10px] font-mono font-bold px-1.5 py-0.5 rounded ${
+              className={`text-xs font-mono font-semibold px-1.5 py-0.5 rounded ${
                 hoveredCell.level === 4
                   ? "bg-emerald-500/20 text-emerald-400"
                   : hoveredCell.level > 0
@@ -268,14 +268,14 @@ export function ActivityHeatmap() {
               {hoveredCell.level === 4 ? "Goal Met!" : hoveredCell.level === -1 ? "No data" : `${Math.round(hoveredCell.score * 100)}%`}
             </span>
           </div>
-          <div className="text-[11px] text-zinc-300 space-y-0.5 pt-0.5 font-mono">
+          <div className="text-xs text-zinc-300 space-y-0.5 pt-0.5 font-mono">
             {hoveredCell.steps > 0 && <div>👣 {hoveredCell.steps.toLocaleString()} steps</div>}
             {hoveredCell.water > 0 && <div>💧 {hoveredCell.water.toLocaleString()} ml</div>}
             {hoveredCell.workouts > 0 && <div>🏋️ {hoveredCell.workouts} mins</div>}
             {hoveredCell.habits > 0 && <div>✅ {hoveredCell.habits} habits</div>}
             {hoveredCell.level === -1 && <div className="text-zinc-500 italic">No activity recorded</div>}
           </div>
-          <div className="text-[9px] text-zinc-500 pt-1 border-t border-white/[0.04]">
+          <div className="text-xs text-zinc-400 pt-1 border-t border-white/[0.04]">
             Click to inspect day
           </div>
         </div>
@@ -284,18 +284,18 @@ export function ActivityHeatmap() {
       {/* Legend & Stats Summary Bar */}
       <div className="mt-5 pt-4 border-t border-white/[0.08] flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
         {/* Streak & Active Days Summary */}
-        <div className="flex items-center gap-4 flex-wrap">
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 font-semibold">
-            <Flame className="w-4 h-4 text-amber-400 fill-amber-400 animate-pulse" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-white/[0.08] text-amber-300 font-semibold">
+            <Flame className="w-4 h-4 text-amber-400 fill-amber-400" />
             <span className="font-mono tabular-nums font-bold text-white">{currentStreak}</span>
             <span>day streak</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 font-semibold">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-white/[0.08] text-emerald-300 font-semibold">
             <Trophy className="w-4 h-4 text-emerald-400" />
             <span className="font-mono tabular-nums font-bold text-white">{bestStreak}</span>
             <span>best streak</span>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.04] border border-white/[0.08] text-zinc-300 font-medium">
+          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-900 border border-white/[0.08] text-zinc-300 font-medium">
             <Calendar className="w-4 h-4 text-zinc-400" />
             <span className="font-mono tabular-nums font-bold text-white">{totalActiveDays}</span>
             <span>active days</span>
@@ -303,31 +303,31 @@ export function ActivityHeatmap() {
         </div>
 
         {/* Legend */}
-        <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400 self-end sm:self-auto">
+        <div className="flex items-center gap-2 text-xs text-zinc-400 self-end sm:self-auto">
           <span>Less</span>
           <div className="flex items-center gap-1">
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-zinc-900/70 border border-white/[0.06]"
+              className="w-3 h-3 rounded-[2px] bg-zinc-900/80 border border-white/[0.06]"
               title="No data"
             />
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-zinc-800 border border-zinc-700/60"
+              className="w-3 h-3 rounded-[2px] bg-zinc-800 border border-zinc-700/60"
               title="Logged 0% progress"
             />
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-emerald-950 border border-emerald-800/80"
+              className="w-3 h-3 rounded-[2px] bg-emerald-950 border border-emerald-800/80"
               title="1-49% progress"
             />
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-emerald-700 border border-emerald-600"
+              className="w-3 h-3 rounded-[2px] bg-emerald-700 border border-emerald-600"
               title="50-74% progress"
             />
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-emerald-500 border border-emerald-400"
+              className="w-3 h-3 rounded-[2px] bg-emerald-500 border border-emerald-400"
               title="75-99% progress"
             />
             <div
-              className="w-3.5 h-3.5 rounded-[2px] bg-emerald-400 border border-emerald-300 shadow-sm shadow-emerald-400/50"
+              className="w-3 h-3 rounded-[2px] bg-emerald-400 border border-emerald-300"
               title="100%+ Goal reached"
             />
           </div>

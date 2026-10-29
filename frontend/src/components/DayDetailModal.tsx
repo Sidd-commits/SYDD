@@ -74,22 +74,19 @@ function DayDetailModalContent() {
       aria-modal="true"
       aria-labelledby="day-detail-title"
       onClick={closeDayDetail}
-      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-fade-in"
+      className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/75 backdrop-blur-sm animate-fade-in"
     >
       <div
-        className="bg-[#0e1017] border-t sm:border border-white/[0.12] rounded-t-3xl sm:rounded-3xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
+        className="bg-[#10121a] border-t sm:border border-white/[0.1] rounded-t-2xl sm:rounded-2xl max-w-lg w-full shadow-2xl overflow-hidden flex flex-col max-h-[90dvh] sm:max-h-[92vh] relative animate-slide-up-mobile sm:animate-fade-in"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ambient glow */}
-        <div className="absolute top-0 right-0 w-56 h-56 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-
         {/* Mobile pull indicator */}
-        <div className="sm:hidden w-12 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
+        <div className="sm:hidden w-10 h-1 bg-white/20 rounded-full mx-auto mt-2.5 mb-0.5" />
 
         {/* Header */}
-        <div className="px-5 py-4 sm:p-5 border-b border-white/[0.08] flex items-center justify-between relative z-10">
+        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-2xl bg-white/[0.05] border border-white/[0.08] text-emerald-400">
+            <div className="p-2 rounded-lg bg-zinc-900 border border-white/[0.08] text-emerald-400">
               <Calendar className="w-5 h-5" />
             </div>
             <div>
@@ -98,7 +95,7 @@ function DayDetailModalContent() {
                   {formatDisplayDate(selectedDate, "full")}
                 </h2>
                 {isSelectedToday && (
-                  <span className="text-[10px] font-mono font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2 py-0.5 rounded-md">
                     Today
                   </span>
                 )}
@@ -122,89 +119,89 @@ function DayDetailModalContent() {
           <button
             onClick={closeDayDetail}
             aria-label="Close dialog"
-            className="min-h-[44px] min-w-[44px] flex items-center justify-center text-zinc-400 hover:text-white rounded-xl hover:bg-white/[0.06] transition-colors cursor-pointer"
+            className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.06] transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content Body */}
-        <div className="p-5 flex-1 overflow-y-auto space-y-5 relative z-10">
+        <div className="p-5 flex-1 overflow-y-auto space-y-5">
           {/* Metrics Overview 4-grid */}
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-2.5">
             {/* Steps */}
-            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
+            <div className="p-3 bg-zinc-900/60 border border-white/[0.06] rounded-lg flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
                   <Footprints className="w-3.5 h-3.5 text-emerald-400" />
                   <span>Steps</span>
                 </div>
                 {summary.stepsMet && (
-                  <span className="text-[10px] font-mono font-bold text-emerald-400 bg-emerald-500/15 px-1.5 py-0.5 rounded">Met</span>
+                  <span className="text-xs font-semibold text-emerald-400 bg-emerald-500/10 px-1.5 py-0.2 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2.5 flex items-baseline gap-1.5">
-                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
+              <div className="mt-2 flex items-baseline gap-1.5">
+                <span className="text-xl font-extrabold font-mono tracking-tight tabular-nums text-white">
                   {summary.steps > 0 ? summary.steps.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-zinc-500 font-mono">/ {summary.stepsGoal.toLocaleString()}</span>
+                <span className="text-xs text-zinc-400 font-mono">/ {summary.stepsGoal.toLocaleString()}</span>
               </div>
             </div>
 
             {/* Water */}
-            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
+            <div className="p-3 bg-zinc-900/60 border border-white/[0.06] rounded-lg flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
                   <Droplet className="w-3.5 h-3.5 text-sky-400" />
                   <span>Water</span>
                 </div>
                 {summary.waterMet && (
-                  <span className="text-[10px] font-mono font-bold text-sky-400 bg-sky-500/15 px-1.5 py-0.5 rounded">Met</span>
+                  <span className="text-xs font-semibold text-sky-400 bg-sky-500/10 px-1.5 py-0.2 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2.5 flex items-baseline gap-1.5">
-                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
+              <div className="mt-2 flex items-baseline gap-1.5">
+                <span className="text-xl font-extrabold font-mono tracking-tight tabular-nums text-white">
                   {summary.waterMl > 0 ? `${summary.waterMl}` : "—"}
                 </span>
-                <span className="text-xs text-zinc-500 font-mono">/ {summary.waterGoal} ml</span>
+                <span className="text-xs text-zinc-400 font-mono">/ {summary.waterGoal} ml</span>
               </div>
             </div>
 
             {/* Workouts */}
-            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
+            <div className="p-3 bg-zinc-900/60 border border-white/[0.06] rounded-lg flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
                   <Dumbbell className="w-3.5 h-3.5 text-indigo-400" />
                   <span>Workout</span>
                 </div>
                 {summary.workoutMet && (
-                  <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/15 px-1.5 py-0.5 rounded">Met</span>
+                  <span className="text-xs font-semibold text-indigo-400 bg-indigo-500/10 px-1.5 py-0.2 rounded">Met</span>
                 )}
               </div>
-              <div className="mt-2.5 flex items-baseline gap-1.5">
-                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
+              <div className="mt-2 flex items-baseline gap-1.5">
+                <span className="text-xl font-extrabold font-mono tracking-tight tabular-nums text-white">
                   {summary.workoutMinutes > 0 ? `${summary.workoutMinutes}m` : "—"}
                 </span>
                 {summary.workoutGoalEnabled && (
-                  <span className="text-xs text-zinc-500 font-mono">/ {summary.workoutGoal}m</span>
+                  <span className="text-xs text-zinc-400 font-mono">/ {summary.workoutGoal}m</span>
                 )}
               </div>
             </div>
 
             {/* Calories */}
-            <div className="p-4 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex flex-col justify-between">
+            <div className="p-3 bg-zinc-900/60 border border-white/[0.06] rounded-lg flex flex-col justify-between">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-400 uppercase">
+                <div className="flex items-center gap-1.5 text-xs font-medium text-zinc-300">
                   <Flame className="w-3.5 h-3.5 text-amber-400" />
                   <span>Calories</span>
                 </div>
-                <span className="text-[10px] text-zinc-500 font-mono">Intake</span>
+                <span className="text-xs text-zinc-400">Intake</span>
               </div>
-              <div className="mt-2.5 flex items-baseline gap-1.5">
-                <span className="text-2xl font-black font-mono tracking-tight tabular-nums text-white">
+              <div className="mt-2 flex items-baseline gap-1.5">
+                <span className="text-xl font-extrabold font-mono tracking-tight tabular-nums text-white">
                   {summary.caloriesConsumed > 0 ? summary.caloriesConsumed.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-zinc-500 font-mono">kcal</span>
+                <span className="text-xs text-zinc-400 font-mono">kcal</span>
               </div>
             </div>
           </div>
@@ -212,7 +209,7 @@ function DayDetailModalContent() {
           {/* Workouts Logged for this Day */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">
                 Workouts Logged ({summary.workouts.length})
               </h3>
               <button

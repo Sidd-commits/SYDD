@@ -94,9 +94,9 @@ export function SettingsView() {
       </div>
 
       {/* Daily Goals Configuration */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl">
-        <div className="flex items-center gap-3 mb-5">
-          <div className="p-2.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+      <div className="glass-card rounded-xl p-4 sm:p-6 shadow-xs">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
             <Target className="w-5 h-5" />
           </div>
           <div>
@@ -109,11 +109,11 @@ export function SettingsView() {
           </div>
         </div>
 
-        <form onSubmit={handleGoalsSubmit} className="space-y-5">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleGoalsSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
             {/* Steps Target */}
             <div>
-              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Daily Step Target
               </label>
               <div className="relative">
@@ -126,9 +126,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, stepsPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-3.5 pr-14 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg font-mono font-semibold tabular-nums text-white focus:border-emerald-500/60 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   steps
                 </span>
               </div>
@@ -136,7 +136,7 @@ export function SettingsView() {
 
             {/* Water Target */}
             <div>
-              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Daily Hydration Target
               </label>
               <div className="relative">
@@ -149,9 +149,9 @@ export function SettingsView() {
                   onChange={(e) =>
                     setGoalsState({ ...goalsState, waterMlPerDay: Math.max(0, parseInt(e.target.value, 10) || 0) })
                   }
-                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-3.5 pr-14 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg font-mono font-semibold tabular-nums text-white focus:border-emerald-500/60 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   ml
                 </span>
               </div>
@@ -159,7 +159,7 @@ export function SettingsView() {
 
             {/* Calories Consumed Reference */}
             <div>
-              <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider mb-1.5">
+              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
                 Calorie Intake Reference (kcal)
               </label>
               <div className="relative">
@@ -175,13 +175,13 @@ export function SettingsView() {
                       caloriesConsumedKcalPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className="w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  className="w-full pl-3.5 pr-14 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg font-mono font-semibold tabular-nums text-white focus:border-emerald-500/60 focus:outline-none"
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   kcal
                 </span>
               </div>
-              <p className="mt-1 text-[11px] text-zinc-500">
+              <p className="mt-1 text-xs text-zinc-400">
                 Informational intake benchmark only.
               </p>
             </div>
@@ -189,10 +189,10 @@ export function SettingsView() {
             {/* Workout Minutes Target & Toggle */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
-                <label className="block text-xs font-mono font-bold text-zinc-400 uppercase tracking-wider">
+                <label className="block text-xs font-medium text-zinc-300">
                   Workout Target (Minutes)
                 </label>
-                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-bold text-emerald-400">
+                <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-emerald-400">
                   <input
                     type="checkbox"
                     checked={goalsState.workoutGoalEnabled}
@@ -201,7 +201,7 @@ export function SettingsView() {
                     }
                     className="rounded border-zinc-700 text-emerald-500 focus:ring-emerald-500"
                   />
-                  <span>Track Workout Goal</span>
+                  <span>Track Goal</span>
                 </label>
               </div>
               <div className="relative">
@@ -218,11 +218,11 @@ export function SettingsView() {
                       workoutMinutesPerDay: Math.max(0, parseInt(e.target.value, 10) || 0),
                     })
                   }
-                  className={`w-full pl-4 pr-18 py-3 text-base bg-white/[0.04] border border-white/[0.1] rounded-2xl font-mono font-bold tabular-nums text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none ${
+                  className={`w-full pl-3.5 pr-14 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg font-mono font-semibold tabular-nums text-white focus:border-emerald-500/60 focus:outline-none ${
                     !goalsState.workoutGoalEnabled ? "opacity-30 cursor-not-allowed" : ""
                   }`}
                 />
-                <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-xs font-mono font-bold text-zinc-400 bg-white/[0.06] border border-white/[0.06] px-2 py-0.5 rounded-lg pointer-events-none">
+                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
                   mins
                 </span>
               </div>
@@ -232,9 +232,9 @@ export function SettingsView() {
           <div className="pt-2 flex justify-end">
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs sm:text-sm font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
+              className="flex items-center gap-1.5 px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded-lg shadow-xs transition-all cursor-pointer active:scale-95"
             >
-              <Check className="w-4 h-4 stroke-[3]" />
+              <Check className="w-4 h-4 stroke-[2.5]" />
               <span>Update Targets</span>
             </button>
           </div>
@@ -242,9 +242,9 @@ export function SettingsView() {
       </div>
 
       {/* Measurement Units */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-4">
+      <div className="glass-card rounded-xl p-4 sm:p-5 shadow-xs space-y-3">
         <div className="flex items-center gap-3">
-          <div className="p-2.5 rounded-2xl bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
+          <div className="p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20 text-indigo-400">
             <Dumbbell className="w-5 h-5" />
           </div>
           <div>
@@ -257,23 +257,23 @@ export function SettingsView() {
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08]">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 rounded-lg bg-zinc-900/60 border border-white/[0.06]">
           <div>
-            <span className="text-xs font-bold text-white block">
+            <span className="text-xs font-semibold text-white block">
               Default Weight Unit
             </span>
-            <span className="text-[11px] text-zinc-400 block mt-0.5">
+            <span className="text-xs text-zinc-400 block mt-0.5">
               Used when logging barbell, dumbbell, and machine sets
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-900 border border-white/[0.08] self-start sm:self-auto">
+          <div className="flex items-center gap-1 p-1 rounded-lg bg-zinc-950 border border-white/[0.08] self-start sm:self-auto">
             <button
               type="button"
               onClick={() => updateUnitWeight("kg")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 (appData.settings.unitWeight || "kg") === "kg"
-                  ? "bg-emerald-500 text-zinc-950 shadow-xs"
+                  ? "bg-zinc-800 text-white shadow-xs border border-white/[0.08]"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -282,9 +282,9 @@ export function SettingsView() {
             <button
               type="button"
               onClick={() => updateUnitWeight("lbs")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono font-bold transition-all cursor-pointer ${
+              className={`px-3 py-1 rounded-md text-xs font-medium transition-all cursor-pointer ${
                 appData.settings.unitWeight === "lbs"
-                  ? "bg-emerald-500 text-zinc-950 shadow-xs"
+                  ? "bg-zinc-800 text-white shadow-xs border border-white/[0.08]"
                   : "text-zinc-400 hover:text-white"
               }`}
             >
@@ -295,7 +295,7 @@ export function SettingsView() {
       </div>
 
       {/* Data Export & Backup */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+      <div className="glass-card rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
         <div>
           <h2 className="text-base font-bold text-white tracking-tight">
             Data Portability & Backups
@@ -305,21 +305,21 @@ export function SettingsView() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* JSON Export */}
           <button
             onClick={exportJSON}
-            className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-emerald-500/40 text-left transition-all cursor-pointer group"
+            className="flex items-center justify-between p-3.5 rounded-lg bg-zinc-900/60 hover:bg-zinc-800/60 border border-white/[0.06] hover:border-white/[0.15] text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 <Download className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-white block group-hover:text-emerald-300 transition-colors">
+                <span className="text-sm font-semibold text-white block group-hover:text-emerald-300 transition-colors">
                   Export JSON Backup
                 </span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-zinc-400">
                   Full state including habits and targets
                 </span>
               </div>
@@ -329,17 +329,17 @@ export function SettingsView() {
           {/* CSV Export */}
           <button
             onClick={exportCSV}
-            className="flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.08] hover:border-sky-500/40 text-left transition-all cursor-pointer group"
+            className="flex items-center justify-between p-3.5 rounded-lg bg-zinc-900/60 hover:bg-zinc-800/60 border border-white/[0.06] hover:border-white/[0.15] text-left transition-all cursor-pointer group"
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+              <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
                 <FileSpreadsheet className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-white block group-hover:text-sky-300 transition-colors">
+                <span className="text-sm font-semibold text-white block group-hover:text-sky-300 transition-colors">
                   Export Activity CSV
                 </span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-zinc-400">
                   Spreadsheet friendly: steps, water, workouts
                 </span>
               </div>
@@ -349,16 +349,16 @@ export function SettingsView() {
 
         {/* Import JSON */}
         <div>
-          <label className="flex items-center justify-between p-4 rounded-2xl border border-dashed border-white/[0.12] hover:border-emerald-500/50 cursor-pointer transition-colors bg-white/[0.02]">
+          <label className="flex items-center justify-between p-3.5 rounded-lg border border-dashed border-white/[0.1] hover:border-emerald-500/40 cursor-pointer transition-colors bg-zinc-900/30">
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-zinc-800 text-zinc-300">
+              <div className="p-2 rounded-lg bg-zinc-800 text-zinc-300">
                 <Upload className="w-4 h-4" />
               </div>
               <div>
-                <span className="text-sm font-bold text-white block">
+                <span className="text-sm font-semibold text-white block">
                   Restore from JSON Backup
                 </span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-zinc-400">
                   Select a previously exported SYDD JSON backup
                 </span>
               </div>
@@ -369,13 +369,13 @@ export function SettingsView() {
               onChange={handleFileImport}
               className="hidden"
             />
-            <span className="text-xs font-mono font-bold text-emerald-400 px-3.5 py-1.5 rounded-xl bg-white/[0.05] border border-white/[0.1]">
+            <span className="text-xs font-semibold text-emerald-400 px-3 py-1.5 rounded-md bg-white/[0.05] border border-white/[0.08]">
               Browse File
             </span>
           </label>
 
           {importError && (
-            <div className="mt-2.5 p-3 rounded-2xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+            <div className="mt-2 p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{importError}</span>
             </div>
@@ -384,10 +384,10 @@ export function SettingsView() {
       </div>
 
       {/* Backend Server Persistence & Synchronization */}
-      <div className="glass-card rounded-3xl p-5 sm:p-7 shadow-xl space-y-5">
+      <div className="glass-card rounded-xl p-4 sm:p-5 shadow-xs space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+            <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
               <Server className="w-5 h-5" />
             </div>
             <div>
@@ -403,8 +403,8 @@ export function SettingsView() {
           {/* Connection Status Badge */}
           <div className="flex items-center gap-2 self-start sm:self-auto">
             {backendHealth?.reachable ? (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 shadow-xs">
-                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <span>
                   {syncState === "syncing" || isManualSyncing
                     ? "Syncing..."
@@ -414,8 +414,8 @@ export function SettingsView() {
                 </span>
               </span>
             ) : (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-bold bg-zinc-800 border border-white/[0.08] text-zinc-400">
-                <span className="w-2 h-2 rounded-full bg-zinc-500" />
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md text-xs font-medium bg-zinc-800 border border-white/[0.08] text-zinc-400">
+                <span className="w-1.5 h-1.5 rounded-full bg-zinc-500" />
                 <span>Server Offline</span>
               </span>
             )}
@@ -423,7 +423,7 @@ export function SettingsView() {
               type="button"
               onClick={() => checkBackendHealth()}
               title="Refresh connection status"
-              className="p-1.5 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] text-zinc-400 hover:text-white transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-zinc-400 hover:text-white transition-colors cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -431,7 +431,7 @@ export function SettingsView() {
         </div>
 
         {/* Sync Controls */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {/* Manual Backup Button */}
           <button
             type="button"
@@ -441,26 +441,26 @@ export function SettingsView() {
               await syncWithBackend();
               setIsManualSyncing(false);
             }}
-            className={`flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-left transition-all ${
+            className={`flex items-center justify-between p-3.5 rounded-lg bg-zinc-900/60 border border-white/[0.06] text-left transition-all ${
               backendHealth?.reachable
-                ? "hover:bg-white/[0.06] hover:border-emerald-500/40 cursor-pointer group"
+                ? "hover:bg-zinc-800/60 hover:border-white/[0.15] cursor-pointer group"
                 : "opacity-40 cursor-not-allowed"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
+              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
                 <HardDrive className={`w-4 h-4 ${isManualSyncing ? "animate-spin" : ""}`} />
               </div>
               <div>
-                <span className="text-sm font-bold text-white block group-hover:text-emerald-300 transition-colors">
+                <span className="text-sm font-semibold text-white block group-hover:text-emerald-300 transition-colors">
                   {isManualSyncing ? "Backing Up..." : "Back Up to Backend"}
                 </span>
-                <span className="text-xs text-zinc-500">
+                <span className="text-xs text-zinc-400">
                   Store snapshot in backend/data/
                 </span>
               </div>
             </div>
-            <span className="text-xs font-mono font-bold text-zinc-400 group-hover:text-white transition-colors">
+            <span className="text-xs font-semibold text-zinc-400 group-hover:text-white transition-colors">
               Save
             </span>
           </button>
@@ -470,14 +470,14 @@ export function SettingsView() {
             type="button"
             disabled={!backendHealth?.reachable}
             onClick={() => setIsConfirmRestoreOpen(true)}
-            className={`flex items-center justify-between p-4 rounded-2xl bg-white/[0.03] border border-white/[0.08] text-left transition-all ${
+            className={`flex items-center justify-between p-3.5 rounded-lg bg-zinc-900/60 border border-white/[0.06] text-left transition-all ${
               backendHealth?.reachable
-                ? "hover:bg-white/[0.06] hover:border-sky-500/40 cursor-pointer group"
+                ? "hover:bg-zinc-800/60 hover:border-white/[0.15] cursor-pointer group"
                 : "opacity-40 cursor-not-allowed"
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className="p-2.5 rounded-xl bg-sky-500/10 border border-sky-500/20 text-sky-400">
+              <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
                 <RefreshCw className="w-4 h-4" />
               </div>
               <div>

@@ -18,31 +18,31 @@ export function OverviewView() {
   const goals = appData.settings.goals;
 
   return (
-    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-24 md:pb-16">
+    <div className="space-y-6 sm:space-y-8 animate-fade-in pb-24 md:pb-16 min-w-0 w-full">
       {/* Onboarding Banner */}
       <OnboardingBanner />
 
       {/* Date & Day Summary Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <div className="flex items-center gap-2 text-xs font-mono font-bold text-zinc-500 uppercase tracking-widest">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-400">
             <Calendar className="w-3.5 h-3.5 text-zinc-400" />
             <span>{formatDisplayDate(today, "full")}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight mt-1 flex items-center gap-2.5">
+          <h1 className="text-xl sm:text-2xl font-bold text-white tracking-tight mt-1 flex items-center gap-2">
             <span>Daily Overview</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-emerald-400" />
           </h1>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
           {summary.activeDay ? (
-            <div className="flex items-center gap-2 px-3.5 py-1.5 bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 rounded-2xl text-xs font-bold shadow-md shadow-emerald-500/10">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-lg text-xs font-semibold">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
-              <span>Active day stacked!</span>
+              <span>Active day stacked</span>
             </div>
           ) : (
-            <div className="text-xs text-zinc-400 font-medium px-3 py-1.5 bg-white/[0.03] border border-white/[0.06] rounded-xl">
+            <div className="text-xs text-zinc-400 font-medium px-3 py-1.5 bg-zinc-900 border border-white/[0.08] rounded-lg">
               Complete a goal or habit to stack today&apos;s green cell
             </div>
           )}
@@ -112,11 +112,14 @@ export function OverviewView() {
         />
       </div>
 
-      {/* Habits Checklist */}
-      <HabitsChecklist />
+      {/* Habits & Rolling 7-Day Recap Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        {/* Habits Checklist */}
+        <HabitsChecklist />
 
-      {/* 7-Day Rolling Analytics Recap */}
-      <WeeklyRecap />
+        {/* 7-Day Rolling Analytics Recap */}
+        <WeeklyRecap />
+      </div>
 
       {/* Signature Contribution Heatmap */}
       <ActivityHeatmap />
