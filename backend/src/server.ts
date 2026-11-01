@@ -1,7 +1,7 @@
 import http from "node:http";
 import { SyncController } from "./controllers/syncController.js";
 import { BackendStorageService } from "./services/storageService.js";
-import { SyncPayload } from "./types/index.js";
+import { SyncPayload, DeltaSyncPayload } from "./types/index.js";
 
 const PORT = parseInt(process.env.PORT || "5000", 10);
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB limit for JSON sync
@@ -100,7 +100,51 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Sync / Upload backup
+  // Record-level Delta Sync endpoint
+  if (req.method === "POST" && url.pathname === "/api/sync/delta") {
+    const contentType = req.headers["content-type"] || "";
+    if (!contentType.includes("application/json")) {
+      res.writeHead(415, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Unsupported Media Type: Content-Type must be application/json" }));
+      return;
+    }
+
+    let isAborted = false;
+    let body = "";
+
+    req.on("data", (chunk) => {
+      if (isAborted) return;
+      body += chunk;
+      if (body.length > MAX_PAYLOAD_BYTES) {
+        isAborted = true;
+        res.writeHead(413, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Delta payload exceeds 5MB limit." }));
+        req.destroy();
+      }
+    });
+
+    req.on("error", (err) => {
+      if (isAborted || res.writableEnded) return;
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Stream read error: " + err.message }));
+    });
+
+    req.on("end", () => {
+      if (isAborted || res.writableEnded) return;
+      try {
+        const payload: DeltaSyncPayload = JSON.parse(body);
+        const result = SyncController.handleDeltaSync(payload);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: (err as Error).message }));
+      }
+    });
+    return;
+  }
+
+  // Sync / Upload backup (Monolithic full snapshot fallback)
   if (req.method === "POST" && (url.pathname === "/api/sync" || url.pathname === "/api/backup")) {
     const contentType = req.headers["content-type"] || "";
     if (!contentType.includes("application/json")) {

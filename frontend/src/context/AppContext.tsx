@@ -23,6 +23,7 @@ import {
   WorkoutType,
 } from "@/types";
 import { StorageService, getDefaultAppData, validateAndMigrateData } from "@/lib/storage";
+import { IDBStorage } from "@/lib/idbStorage";
 import { STORAGE_KEY } from "@/lib/constants";
 import { getTodayISODate } from "@/lib/dateUtils";
 import { SyncService, SyncState, BackendHealth } from "@/lib/syncService";
@@ -155,6 +156,9 @@ function getServerDataSnapshot(): AppData {
 function emitDataChange(next: AppData) {
   cachedDataSnapshot = next;
   StorageService.save(next);
+  if (typeof window !== "undefined") {
+    IDBStorage.saveAll(next).catch(() => {});
+  }
   for (const listener of dataListeners) {
     listener();
   }
@@ -268,6 +272,39 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
+  // Initialize native IndexedDB dual-layer persistence
+  useEffect(() => {
+    let mounted = true;
+    const initIDB = async () => {
+      if (!IDBStorage.isSupported()) return;
+      try {
+        // 1. If IDB is empty and localStorage has records, auto-migrate to IDB
+        await IDBStorage.autoMigrateFromLocalStorage();
+
+        // 2. If localStorage was cleared (e.g. storage wipe) but IDB holds records, restore from IDB
+        const current = getDataSnapshot();
+        const hasCurrent =
+          (current.dailyRecords && current.dailyRecords.length > 0) ||
+          (current.workouts && current.workouts.length > 0) ||
+          (current.nutritionEntries && current.nutritionEntries.length > 0);
+
+        if (!hasCurrent) {
+          const idbData = await IDBStorage.loadAll();
+          if (idbData && mounted) {
+            const validated = validateAndMigrateData(idbData);
+            emitDataChange(validated);
+          }
+        }
+      } catch (err) {
+        console.warn("[SYDD] IndexedDB initialization warning:", err);
+      }
+    };
+    initIDB();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const scheduleBackgroundSync = useCallback((data: AppData) => {
     // Safety guard: prevent automated background overwrite if the client state has zero records
     // (e.g. freshly cleared localStorage or new device before user restores data)
@@ -322,11 +359,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setSyncState("syncing");
     const res = await SyncService.fetchLatestBackup();
     if (res.success && res.data) {
+      const current = getDataSnapshot();
+      // Safety safeguard: Archive current local state before applying restore so user can never lose local progress
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            "sydd_pre_restore_archive",
+            JSON.stringify({
+              archivedAt: new Date().toISOString(),
+              data: current,
+            })
+          );
+        } catch {
+          // ignore quota issues on archive
+        }
+      }
       const validated = validateAndMigrateData(res.data);
       StorageService.save(validated);
       emitDataChange(validated);
       setSyncState("synced");
-      showToast("Restored latest data from backend server", "success");
+      showToast("Restored latest data from backend server (previous local copy archived)", "success");
       return true;
     } else {
       setSyncState("error");

@@ -63,3 +63,33 @@ test("SyncController.handleSync accepts valid payloads and produces enriched met
   assert.ok(result.syncedAt);
 });
 
+test("SyncController.handleSync guards against overwriting populated backup with empty payload", () => {
+  // Existing backup has records (from previous test)
+  assert.throws(() => {
+    SyncController.handleSync({
+      schemaVersion: 1,
+      data: {
+        settings: { goals: { stepsPerDay: 8000 } },
+        dailyRecords: [],
+        workouts: [],
+        nutritionEntries: [],
+      },
+    } as any);
+  }, /Safety guard: Cannot overwrite populated backup/);
+
+  // Passing forceOverwrite: true allows explicit overwrite
+  const forcedResult = SyncController.handleSync({
+    schemaVersion: 1,
+    forceOverwrite: true,
+    data: {
+      settings: { goals: { stepsPerDay: 8000 } },
+      dailyRecords: [],
+      workouts: [],
+      nutritionEntries: [],
+    },
+  } as any);
+
+  assert.strictEqual(forcedResult.success, true);
+  assert.strictEqual(forcedResult.recordsCount, 0);
+});
+

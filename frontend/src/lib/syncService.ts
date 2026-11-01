@@ -1,4 +1,4 @@
-import { AppData } from "@/types";
+import { AppData, DailyRecord, Habit, HabitCompletion, NutritionEntry, Workout, WorkoutRoutine } from "@/types";
 
 export type SyncState = "idle" | "checking" | "syncing" | "synced" | "error" | "offline";
 
@@ -82,6 +82,63 @@ export class SyncService {
         success: true,
         message: json.message || "Data synced successfully.",
         isDuplicate: json.isDuplicate,
+        syncedAt: json.syncedAt,
+      };
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to connect to backend server";
+      return { success: false, message: msg };
+    }
+  }
+
+  /**
+   * Performs record-level delta synchronization with conflict detection.
+   */
+  public static async syncDelta(delta: {
+    lastSyncTimestamp?: string;
+    clientTimestamp: string;
+    changes: {
+      dailyRecords?: DailyRecord[];
+      workouts?: Workout[];
+      nutritionEntries?: NutritionEntry[];
+      habits?: Habit[];
+      habitCompletions?: HabitCompletion[];
+      workoutRoutines?: WorkoutRoutine[];
+      settings?: AppData["settings"];
+    };
+  }): Promise<{
+    success: boolean;
+    message: string;
+    serverChanges?: Partial<AppData>;
+    syncedAt?: string;
+  }> {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      const res = await fetch(`${BACKEND_URL}/api/sync/delta`, {
+        method: "POST",
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({
+          schemaVersion: 1,
+          ...delta,
+        }),
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const errorText = await res.text();
+        return { success: false, message: `Server error ${res.status}: ${errorText}` };
+      }
+
+      const json = await res.json();
+      return {
+        success: true,
+        message: json.message || "Delta synced successfully.",
+        serverChanges: json.serverChanges,
         syncedAt: json.syncedAt,
       };
     } catch (err: unknown) {

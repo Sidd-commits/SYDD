@@ -61,4 +61,5 @@ AGENTS.md
 # Backend persistent data backups (generated at runtime)
 backend/data/*.json
 backend/data/backups/
+backend/data/archive/
 !backend/data/.gitkeep
