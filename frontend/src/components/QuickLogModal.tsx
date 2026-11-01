@@ -13,40 +13,92 @@ import {
   Dumbbell,
   Check,
   Calendar,
+  Sparkles,
 } from "lucide-react";
 
 export function QuickLogModal() {
-  const { isQuickLogOpen, selectedDate, quickLogMetric } = useApp();
+  const {
+    isQuickLogOpen,
+    selectedDate,
+    quickLogMetric,
+    editingNutritionEntry,
+    quickLogTargetDate,
+    today,
+  } = useApp();
   if (!isQuickLogOpen) return null;
 
-  return <QuickLogModalContent key={`${selectedDate}-${quickLogMetric}`} />;
+  const resolvedDate =
+    quickLogTargetDate || editingNutritionEntry?.date || selectedDate || today;
+
+  return (
+    <QuickLogModalContent
+      key={`${resolvedDate}-${quickLogMetric}-${editingNutritionEntry?.id || "new"}`}
+      initialDate={resolvedDate}
+    />
+  );
 }
 
-function QuickLogModalContent() {
+function QuickLogModalContent({ initialDate }: { initialDate: string }) {
   const {
     closeQuickLog,
     quickLogMetric,
-    selectedDate,
+    editingNutritionEntry,
     logSteps,
-    logCalories,
+    addNutritionEntry,
+    updateNutritionEntry,
     logWater,
     addWorkout,
     appData,
     today,
   } = useApp();
 
-  const [activeMetric, setActiveMetric] = useState<"steps" | "calories" | "water" | "workout">(quickLogMetric);
-  const [logDate, setLogDate] = useState(selectedDate);
+  const [activeMetric, setActiveMetric] = useState<"steps" | "calories" | "water" | "workout">(
+    editingNutritionEntry ? "calories" : quickLogMetric
+  );
+  const [logDate, setLogDate] = useState(initialDate);
 
-  const initialRecord = appData.dailyRecords.find((r) => r.date === selectedDate);
+  const initialRecord = appData.dailyRecords.find((r) => r.date === initialDate);
   const [stepsInput, setStepsInput] = useState(initialRecord?.steps !== undefined ? String(initialRecord.steps) : "");
-  const [caloriesInput, setCaloriesInput] = useState(initialRecord?.caloriesConsumedKcal !== undefined ? String(initialRecord.caloriesConsumedKcal) : "");
+  
+  // Nutrition & Meal state
+  const [mealName, setMealName] = useState(editingNutritionEntry?.name || "");
+  const [mealCalories, setMealCalories] = useState(
+    editingNutritionEntry?.calories !== undefined ? String(editingNutritionEntry.calories) : ""
+  );
+  const [mealProtein, setMealProtein] = useState(
+    editingNutritionEntry?.proteinG !== undefined ? String(editingNutritionEntry.proteinG) : ""
+  );
+  const [mealCarbs, setMealCarbs] = useState(
+    editingNutritionEntry?.carbsG !== undefined ? String(editingNutritionEntry.carbsG) : ""
+  );
+  const [mealFat, setMealFat] = useState(
+    editingNutritionEntry?.fatG !== undefined ? String(editingNutritionEntry.fatG) : ""
+  );
+  const [mealTime, setMealTime] = useState(editingNutritionEntry?.time || "");
+
   const [waterInput, setWaterInput] = useState(initialRecord?.waterMl !== undefined ? String(initialRecord.waterMl) : "");
   const [workoutType, setWorkoutType] = useState<WorkoutType>("walking");
   const [workoutDuration, setWorkoutDuration] = useState("30");
   const [workoutNotes, setWorkoutNotes] = useState("");
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  // Extract unique recently logged meals for quick pre-fill
+  const recentFoods = React.useMemo(() => {
+    const list = appData.nutritionEntries || [];
+    const seen = new Set<string>();
+    const result: typeof list = [];
+    for (let i = list.length - 1; i >= 0; i--) {
+      const item = list[i];
+      const key = item.name.toLowerCase().trim();
+      if (!seen.has(key)) {
+        seen.add(key);
+        result.push(item);
+      }
+      if (result.length >= 8) break;
+    }
+    return result;
+  }, [appData.nutritionEntries]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -77,16 +129,79 @@ function QuickLogModalContent() {
       logSteps(val, logDate);
       closeQuickLog();
     } else if (activeMetric === "calories") {
-      const val = parseInt(caloriesInput, 10);
-      if (isNaN(val) || val < 0) {
+      const cals = parseInt(mealCalories, 10);
+      if (isNaN(cals) || cals < 0) {
         setErrorMsg("Please enter a valid calorie amount (0 or greater).");
         return;
       }
-      if (val > 25000) {
+      if (cals > 25000) {
         setErrorMsg("Calorie value exceeds 25,000. Please verify.");
         return;
       }
-      logCalories(val, logDate);
+
+      let pVal: number | undefined;
+      if (mealProtein.trim() !== "") {
+        pVal = parseFloat(mealProtein);
+        if (isNaN(pVal) || pVal < 0) {
+          setErrorMsg("Protein must be a valid number (0 or greater).");
+          return;
+        }
+        if (pVal > 1000) {
+          setErrorMsg("Protein value exceeds 1,000g. Please verify.");
+          return;
+        }
+      }
+
+      let cVal: number | undefined;
+      if (mealCarbs.trim() !== "") {
+        cVal = parseFloat(mealCarbs);
+        if (isNaN(cVal) || cVal < 0) {
+          setErrorMsg("Carbohydrates must be a valid number (0 or greater).");
+          return;
+        }
+        if (cVal > 2000) {
+          setErrorMsg("Carbohydrate value exceeds 2,000g. Please verify.");
+          return;
+        }
+      }
+
+      let fVal: number | undefined;
+      if (mealFat.trim() !== "") {
+        fVal = parseFloat(mealFat);
+        if (isNaN(fVal) || fVal < 0) {
+          setErrorMsg("Fat must be a valid number (0 or greater).");
+          return;
+        }
+        if (fVal > 1000) {
+          setErrorMsg("Fat value exceeds 1,000g. Please verify.");
+          return;
+        }
+      }
+
+      const cleanName = mealName.trim() || "Meal";
+
+      if (editingNutritionEntry) {
+        updateNutritionEntry({
+          ...editingNutritionEntry,
+          date: logDate,
+          name: cleanName,
+          calories: cals,
+          proteinG: pVal,
+          carbsG: cVal,
+          fatG: fVal,
+          time: mealTime.trim() || undefined,
+        });
+      } else {
+        addNutritionEntry({
+          date: logDate,
+          name: cleanName,
+          calories: cals,
+          proteinG: pVal,
+          carbsG: cVal,
+          fatG: fVal,
+          time: mealTime.trim() || undefined,
+        });
+      }
       closeQuickLog();
     } else if (activeMetric === "water") {
       const val = parseInt(waterInput, 10);
@@ -137,7 +252,7 @@ function QuickLogModalContent() {
           <div>
             <h2 id="quick-log-title" className="text-base font-bold text-white tracking-tight flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-emerald-400" />
-              Log Daily Metric
+              {editingNutritionEntry ? "Edit Food Entry" : "Log Daily Metric"}
             </h2>
             <p className="text-xs text-zinc-400 mt-0.5 font-medium">
               Target date: <strong className="text-zinc-200 font-mono">{formatDisplayDate(logDate, "medium")}</strong>
@@ -219,7 +334,16 @@ function QuickLogModalContent() {
               type="date"
               value={logDate}
               max={today}
-              onChange={(e) => setLogDate(e.target.value)}
+              onChange={(e) => {
+                const newDate = e.target.value;
+                setLogDate(newDate);
+                const rec = appData.dailyRecords.find((r) => r.date === newDate);
+                if (activeMetric === "steps") {
+                  setStepsInput(rec?.steps !== undefined ? String(rec.steps) : "");
+                } else if (activeMetric === "water") {
+                  setWaterInput(rec?.waterMl !== undefined ? String(rec.waterMl) : "");
+                }
+              }}
               className="w-full px-3.5 py-2 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-emerald-500/60 focus:outline-none text-white font-mono"
             />
           </div>
@@ -365,34 +489,180 @@ function QuickLogModalContent() {
                 exercises={workoutExercises}
                 onChange={setWorkoutExercises}
                 defaultWeightUnit={appData.settings.unitWeight || "kg"}
+                onSelectRoutine={(routine) => {
+                  setWorkoutType(routine.type || "strength");
+                  if (routine.durationMinutes && (!workoutDuration || workoutDuration === "30")) {
+                    setWorkoutDuration(String(routine.durationMinutes));
+                  }
+                  if (!workoutNotes) {
+                    setWorkoutNotes(routine.name);
+                  }
+                }}
               />
             </div>
           )}
 
           {activeMetric === "calories" && (
-            <div>
-              <label className="block text-xs font-medium text-zinc-300 mb-1.5">
-                Calories Consumed (kcal)
-              </label>
-              <div className="relative">
+            <div className="space-y-3.5">
+              {/* Recent meals quick-select row */}
+              {!editingNutritionEntry && recentFoods.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-1.5 mb-1.5 text-[11px] text-zinc-400 font-medium">
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    <span>Quick-fill from recent meals:</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 overflow-x-auto custom-scrollbar pb-1">
+                    {recentFoods.map((f) => (
+                      <button
+                        key={f.id}
+                        type="button"
+                        onClick={() => {
+                          setMealName(f.name);
+                          setMealCalories(String(f.calories));
+                          setMealProtein(f.proteinG !== undefined ? String(f.proteinG) : "");
+                          setMealCarbs(f.carbsG !== undefined ? String(f.carbsG) : "");
+                          setMealFat(f.fatG !== undefined ? String(f.fatG) : "");
+                        }}
+                        className="shrink-0 px-2.5 py-1 rounded-lg bg-zinc-850 hover:bg-amber-500/10 border border-white/[0.08] hover:border-amber-500/30 text-[11px] text-zinc-300 hover:text-amber-200 transition-all cursor-pointer flex items-center gap-1.5"
+                      >
+                        <span className="font-semibold">{f.name}</span>
+                        <span className="font-mono text-[10px] text-amber-400 font-bold">{f.calories} kcal</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Meal / Food Name */}
+              <div>
+                <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                  Food or Meal Name
+                </label>
                 <input
-                  type="number"
-                  min="0"
-                  max="25000"
-                  step="50"
+                  type="text"
                   autoFocus
-                  placeholder="e.g. 2100"
-                  value={caloriesInput}
-                  onChange={(e) => setCaloriesInput(e.target.value)}
-                  className="w-full pl-3.5 pr-14 py-2.5 text-xl font-bold font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                  placeholder="e.g. Oatmeal & whey, Grilled chicken salad"
+                  value={mealName}
+                  onChange={(e) => setMealName(e.target.value)}
+                  className="w-full px-3.5 py-2.5 text-sm bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white placeholder:text-zinc-500"
                 />
-                <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
-                  kcal
-                </span>
               </div>
-              <p className="mt-1.5 text-xs text-zinc-400">
-                Informational intake reference only.
-              </p>
+
+              {/* Calories & Time in 2 cols */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                    Calories <span className="text-amber-400 font-semibold">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      min="0"
+                      max="25000"
+                      step="10"
+                      placeholder="e.g. 520"
+                      value={mealCalories}
+                      onChange={(e) => setMealCalories(e.target.value)}
+                      className="w-full pl-3.5 pr-14 py-2 text-base font-bold font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-zinc-400 pointer-events-none">
+                      kcal
+                    </span>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-zinc-300 mb-1.5">
+                    Time (optional)
+                  </label>
+                  <input
+                    type="time"
+                    value={mealTime}
+                    onChange={(e) => setMealTime(e.target.value)}
+                    className="w-full px-3.5 py-2 text-sm font-mono bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                  />
+                </div>
+              </div>
+
+              {/* Optional Macronutrients Row */}
+              <div className="pt-2 border-t border-white/[0.06]">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-zinc-300">
+                    Macronutrients (Optional)
+                  </span>
+                  <span className="text-[11px] text-zinc-400">
+                    Leave blank if unknown
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Protein */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                      Protein
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="0.5"
+                        placeholder="0"
+                        value={mealProtein}
+                        onChange={(e) => setMealProtein(e.target.value)}
+                        className="w-full pl-2.5 pr-6 py-1.5 text-xs font-mono font-semibold bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-zinc-500 pointer-events-none">
+                        g
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Carbohydrates */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                      Carbs
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="2000"
+                        step="0.5"
+                        placeholder="0"
+                        value={mealCarbs}
+                        onChange={(e) => setMealCarbs(e.target.value)}
+                        className="w-full pl-2.5 pr-6 py-1.5 text-xs font-mono font-semibold bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-zinc-500 pointer-events-none">
+                        g
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Fat */}
+                  <div>
+                    <label className="block text-[11px] font-medium text-zinc-400 mb-1">
+                      Fat
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="0"
+                        max="1000"
+                        step="0.5"
+                        placeholder="0"
+                        value={mealFat}
+                        onChange={(e) => setMealFat(e.target.value)}
+                        className="w-full pl-2.5 pr-6 py-1.5 text-xs font-mono font-semibold bg-zinc-900 border border-white/[0.1] rounded-lg focus:border-amber-500/60 focus:outline-none text-white"
+                      />
+                      <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] font-mono text-zinc-500 pointer-events-none">
+                        g
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 

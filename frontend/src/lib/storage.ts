@@ -1,5 +1,5 @@
-import { AppData, DailyRecord, Habit, HabitCompletion, Workout } from "@/types";
-import { DEFAULT_HABITS, DEFAULT_SETTINGS, STORAGE_KEY } from "./constants";
+import { AppData, DailyRecord, Habit, HabitCompletion, NutritionEntry, Workout, WorkoutRoutine } from "@/types";
+import { DEFAULT_HABITS, DEFAULT_ROUTINES, DEFAULT_SETTINGS, STORAGE_KEY } from "./constants";
 import { addDays, getTodayISODate } from "./dateUtils";
 
 /**
@@ -12,6 +12,8 @@ export function getDefaultAppData(): AppData {
     workouts: [],
     habits: [...DEFAULT_HABITS],
     habitCompletions: [],
+    nutritionEntries: [],
+    workoutRoutines: [...DEFAULT_ROUTINES],
   };
 }
 
@@ -32,6 +34,9 @@ export function validateAndMigrateData(raw: unknown): AppData {
     goals: {
       stepsPerDay: typeof data.settings?.goals?.stepsPerDay === "number" ? data.settings.goals.stepsPerDay : fallback.settings.goals.stepsPerDay,
       caloriesConsumedKcalPerDay: typeof data.settings?.goals?.caloriesConsumedKcalPerDay === "number" ? data.settings.goals.caloriesConsumedKcalPerDay : fallback.settings.goals.caloriesConsumedKcalPerDay,
+      proteinGPerDay: typeof data.settings?.goals?.proteinGPerDay === "number" ? Math.max(0, data.settings.goals.proteinGPerDay) : fallback.settings.goals.proteinGPerDay,
+      carbsGPerDay: typeof data.settings?.goals?.carbsGPerDay === "number" ? Math.max(0, data.settings.goals.carbsGPerDay) : fallback.settings.goals.carbsGPerDay,
+      fatGPerDay: typeof data.settings?.goals?.fatGPerDay === "number" ? Math.max(0, data.settings.goals.fatGPerDay) : fallback.settings.goals.fatGPerDay,
       waterMlPerDay: typeof data.settings?.goals?.waterMlPerDay === "number" ? data.settings.goals.waterMlPerDay : fallback.settings.goals.waterMlPerDay,
       workoutMinutesPerDay: typeof data.settings?.goals?.workoutMinutesPerDay === "number" ? data.settings.goals.workoutMinutesPerDay : fallback.settings.goals.workoutMinutesPerDay,
       workoutGoalEnabled: typeof data.settings?.goals?.workoutGoalEnabled === "boolean" ? data.settings.goals.workoutGoalEnabled : fallback.settings.goals.workoutGoalEnabled,
@@ -120,12 +125,67 @@ export function validateAndMigrateData(raw: unknown): AppData {
         }))
     : [];
 
+  // Validate nutrition entries
+  const nutritionEntries: NutritionEntry[] = Array.isArray(data.nutritionEntries)
+    ? data.nutritionEntries
+        .slice(0, 50000)
+        .filter((n): n is NutritionEntry => Boolean(n && typeof n.id === "string" && typeof n.date === "string" && typeof n.calories === "number"))
+        .map((n) => ({
+          id: n.id,
+          date: n.date,
+          name: typeof n.name === "string" && n.name.trim() ? n.name.trim().slice(0, 200) : "Meal",
+          calories: Math.max(0, Math.floor(n.calories)),
+          proteinG: typeof n.proteinG === "number" && !isNaN(n.proteinG) ? Math.max(0, Math.round(n.proteinG * 10) / 10) : undefined,
+          carbsG: typeof n.carbsG === "number" && !isNaN(n.carbsG) ? Math.max(0, Math.round(n.carbsG * 10) / 10) : undefined,
+          fatG: typeof n.fatG === "number" && !isNaN(n.fatG) ? Math.max(0, Math.round(n.fatG * 10) / 10) : undefined,
+          time: typeof n.time === "string" ? n.time.slice(0, 10) : undefined,
+          createdAt: n.createdAt || new Date().toISOString(),
+          updatedAt: n.updatedAt || new Date().toISOString(),
+        }))
+    : [];
+
+  // Validate workout routines
+  const workoutRoutines: WorkoutRoutine[] = Array.isArray(data.workoutRoutines) && data.workoutRoutines.length > 0
+    ? data.workoutRoutines
+        .slice(0, 500)
+        .filter((r): r is WorkoutRoutine => Boolean(r && typeof r.id === "string" && typeof r.name === "string" && r.name.trim().length > 0))
+        .map((r) => ({
+          id: r.id,
+          name: r.name.trim().slice(0, 200),
+          type: r.type || "strength",
+          durationMinutes: typeof r.durationMinutes === "number" && r.durationMinutes > 0 ? r.durationMinutes : undefined,
+          notes: typeof r.notes === "string" ? r.notes.trim().slice(0, 2000) : undefined,
+          exercises: Array.isArray(r.exercises)
+            ? r.exercises.slice(0, 50).map((ex) => ({
+                id: ex.id || `rex-${Math.random().toString(36).substring(2, 9)}`,
+                exerciseId: typeof ex.exerciseId === "string" ? ex.exerciseId : undefined,
+                name: typeof ex.name === "string" ? ex.name.trim().slice(0, 200) : "Exercise",
+                notes: typeof ex.notes === "string" ? ex.notes.trim().slice(0, 1000) : undefined,
+                sets: Array.isArray(ex.sets)
+                  ? ex.sets.slice(0, 50).map((s, idx) => ({
+                      id: s.id || `rset-${Math.random().toString(36).substring(2, 9)}`,
+                      setNumber: typeof s.setNumber === "number" && s.setNumber > 0 ? s.setNumber : idx + 1,
+                      reps: Math.max(0, Number(s.reps) || 0),
+                      weight: typeof s.weight === "number" && !isNaN(s.weight) ? Math.max(0, s.weight) : undefined,
+                      weightUnit: s.weightUnit === "lbs" ? ("lbs" as const) : ("kg" as const),
+                      completed: s.completed !== false,
+                    }))
+                  : [],
+              }))
+            : [],
+          createdAt: r.createdAt || new Date().toISOString(),
+          updatedAt: r.updatedAt || new Date().toISOString(),
+        }))
+    : [...DEFAULT_ROUTINES];
+
   return {
     settings,
     dailyRecords,
     workouts,
     habits,
     habitCompletions,
+    nutritionEntries,
+    workoutRoutines,
   };
 }
 
@@ -175,7 +235,18 @@ export const StorageService = {
   },
 
   exportCSV(data: AppData): string {
-    const headers = ["Date", "Steps", "CaloriesConsumed_kcal", "Water_ml", "Workout_minutes", "Habits_completed", "Notes"];
+    const headers = [
+      "Date",
+      "Steps",
+      "CaloriesConsumed_kcal",
+      "Protein_g",
+      "Carbs_g",
+      "Fat_g",
+      "Water_ml",
+      "Workout_minutes",
+      "Habits_completed",
+      "Notes",
+    ];
     const rows: string[] = [headers.join(",")];
 
     // Gather all distinct dates
@@ -183,6 +254,7 @@ export const StorageService = {
     data.dailyRecords.forEach((r) => dates.add(r.date));
     data.workouts.forEach((w) => dates.add(w.date));
     data.habitCompletions.forEach((c) => dates.add(c.date));
+    (data.nutritionEntries || []).forEach((n) => dates.add(n.date));
 
     const sortedDates = Array.from(dates).sort();
 
@@ -191,6 +263,21 @@ export const StorageService = {
       const workouts = data.workouts.filter((w) => w.date === date);
       const workoutMins = workouts.reduce((s, w) => s + w.durationMinutes, 0);
       const habitsDone = data.habitCompletions.filter((c) => c.date === date && c.completed).length;
+
+      const dayNutr = (data.nutritionEntries || []).filter((n) => n.date === date);
+      const dayCals =
+        dayNutr.length > 0
+          ? dayNutr.reduce((s, n) => s + (n.calories || 0), 0)
+          : rec?.caloriesConsumedKcal ?? "";
+
+      const hasP = dayNutr.some((n) => typeof n.proteinG === "number");
+      const proteinVal = hasP ? dayNutr.reduce((s, n) => s + (n.proteinG || 0), 0) : "";
+
+      const hasC = dayNutr.some((n) => typeof n.carbsG === "number");
+      const carbsVal = hasC ? dayNutr.reduce((s, n) => s + (n.carbsG || 0), 0) : "";
+
+      const hasF = dayNutr.some((n) => typeof n.fatG === "number");
+      const fatVal = hasF ? dayNutr.reduce((s, n) => s + (n.fatG || 0), 0) : "";
 
       let notesText = rec?.notes ?? "";
       // Neutralize spreadsheet formula injection characters: =, +, -, @, \t, \r
@@ -202,7 +289,10 @@ export const StorageService = {
       rows.push([
         date,
         rec?.steps ?? "",
-        rec?.caloriesConsumedKcal ?? "",
+        dayCals,
+        proteinVal,
+        carbsVal,
+        fatVal,
         rec?.waterMl ?? "",
         workoutMins || "",
         habitsDone || "",
@@ -289,6 +379,70 @@ export const StorageService = {
       }
     }
 
+    // Sample nutrition meals for the last 3 days
+    const nutritionEntries: NutritionEntry[] = [
+      {
+        id: "sample-nutr-1",
+        date: today,
+        name: "Oatmeal with whey & blueberries",
+        calories: 480,
+        proteinG: 34,
+        carbsG: 62,
+        fatG: 9,
+        time: "08:30",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "sample-nutr-2",
+        date: today,
+        name: "Grilled chicken breast, jasmine rice & broccoli",
+        calories: 680,
+        proteinG: 52,
+        carbsG: 75,
+        fatG: 14,
+        time: "13:00",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "sample-nutr-3",
+        date: today,
+        name: "Greek yogurt parfait with walnuts",
+        calories: 320,
+        proteinG: 22,
+        carbsG: 28,
+        fatG: 12,
+        time: "17:15",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "sample-nutr-4",
+        date: addDays(today, -1),
+        name: "Eggs, avocado & sourdough toast",
+        calories: 540,
+        proteinG: 28,
+        carbsG: 44,
+        fatG: 26,
+        time: "09:00",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+      {
+        id: "sample-nutr-5",
+        date: addDays(today, -1),
+        name: "Salmon fillet with roasted sweet potato",
+        calories: 720,
+        proteinG: 46,
+        carbsG: 58,
+        fatG: 28,
+        time: "19:30",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      },
+    ];
+
     const sampleData: AppData = {
       settings: {
         ...DEFAULT_SETTINGS,
@@ -298,6 +452,8 @@ export const StorageService = {
       workouts,
       habits,
       habitCompletions,
+      nutritionEntries,
+      workoutRoutines: [...DEFAULT_ROUTINES],
     };
 
     return sampleData;

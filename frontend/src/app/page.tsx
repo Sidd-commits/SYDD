@@ -7,6 +7,7 @@ import { Navigation } from "@/components/Navigation";
 import { ToastContainer } from "@/components/Toast";
 import { QuickLogModal } from "@/components/QuickLogModal";
 import { DayDetailModal } from "@/components/DayDetailModal";
+import { RestTimer } from "@/components/RestTimer";
 import { OverviewView } from "@/components/views/OverviewView";
 import { HistoryView } from "@/components/views/HistoryView";
 import { HabitsView } from "@/components/views/HabitsView";
@@ -30,6 +31,8 @@ function DashboardContent() {
 }
 
 export default function Home() {
+  const { isRestTimerOpen, restTimerSeconds, closeRestTimer } = useApp();
+
   return (
     <div className="min-h-screen flex flex-col bg-[#08090d] text-zinc-100 overflow-x-hidden">
       <Header />
@@ -41,6 +44,11 @@ export default function Home() {
 
       <QuickLogModal />
       <DayDetailModal />
+      <RestTimer
+        isOpen={isRestTimerOpen}
+        initialSeconds={restTimerSeconds}
+        onClose={closeRestTimer}
+      />
       <ToastContainer />
     </div>
   );

@@ -44,22 +44,45 @@ export const SyncController = {
       throw new Error("Payload rejected: habits exceeds 1,000 item safety limit.");
     }
 
+    if (dataObj.nutritionEntries !== undefined && !Array.isArray(dataObj.nutritionEntries)) {
+      throw new Error("Invalid sync payload: nutritionEntries must be an array.");
+    }
+    if (Array.isArray(dataObj.nutritionEntries) && dataObj.nutritionEntries.length > 50000) {
+      throw new Error("Payload rejected: nutritionEntries exceeds 50,000 item safety limit.");
+    }
+
+    if (dataObj.workoutRoutines !== undefined && !Array.isArray(dataObj.workoutRoutines)) {
+      throw new Error("Invalid sync payload: workoutRoutines must be an array.");
+    }
+    if (Array.isArray(dataObj.workoutRoutines) && dataObj.workoutRoutines.length > 1000) {
+      throw new Error("Payload rejected: workoutRoutines exceeds 1,000 item safety limit.");
+    }
+
     const syncTimestamp =
       typeof payload.timestamp === "string" && !isNaN(Date.parse(payload.timestamp))
         ? payload.timestamp
         : new Date().toISOString();
 
     const enrichedPayload: SyncPayload = {
-      ...payload,
+      schemaVersion: typeof payload.schemaVersion === "number" ? payload.schemaVersion : 1,
+      userId: typeof payload.userId === "string" ? payload.userId.slice(0, 100) : undefined,
       timestamp: syncTimestamp,
+      data: payload.data,
     };
 
     // Save persistently to filesystem
     const { isDuplicate } = BackendStorageService.saveBackup(enrichedPayload);
 
-    const records = Array.isArray((payload.data as { dailyRecords?: unknown[] }).dailyRecords)
-      ? (payload.data as { dailyRecords: unknown[] }).dailyRecords.length
-      : 0;
+    const records =
+      (Array.isArray((payload.data as { dailyRecords?: unknown[] }).dailyRecords)
+        ? (payload.data as { dailyRecords: unknown[] }).dailyRecords.length
+        : 0) +
+      (Array.isArray((payload.data as { workouts?: unknown[] }).workouts)
+        ? (payload.data as { workouts: unknown[] }).workouts.length
+        : 0) +
+      (Array.isArray((payload.data as { nutritionEntries?: unknown[] }).nutritionEntries)
+        ? (payload.data as { nutritionEntries: unknown[] }).nutritionEntries.length
+        : 0);
 
     return {
       success: true,

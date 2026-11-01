@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState } from "react";
+import { useApp } from "@/context/AppContext";
 import {
   ExerciseDefinition,
   MuscleGroup,
   WeightUnit,
   WorkoutExercise,
+  WorkoutRoutine,
   WorkoutSet,
 } from "@/types";
 import {
@@ -21,12 +23,17 @@ import {
   Dumbbell,
   Search,
   Layers,
+  Bookmark,
+  Timer,
+  Save,
+  Sparkles,
 } from "lucide-react";
 
 type WorkoutSetBuilderProps = {
   exercises: WorkoutExercise[];
   onChange: (exercises: WorkoutExercise[]) => void;
   defaultWeightUnit?: WeightUnit;
+  onSelectRoutine?: (routine: WorkoutRoutine) => void;
 };
 
 let idCounter = 0;
@@ -50,12 +57,51 @@ export function WorkoutSetBuilder({
   exercises,
   onChange,
   defaultWeightUnit = "kg",
+  onSelectRoutine,
 }: WorkoutSetBuilderProps) {
+  const { appData, saveRoutine, startRestTimer } = useApp();
   const [isExpanded, setIsExpanded] = useState(exercises.length > 0);
   const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [isRoutinePickerOpen, setIsRoutinePickerOpen] = useState(false);
+  const [isSavingRoutine, setIsSavingRoutine] = useState(false);
+  const [routineNameInput, setRoutineNameInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMuscle, setSelectedMuscle] = useState<MuscleGroup | "all">("all");
   const [customExerciseName, setCustomExerciseName] = useState("");
+
+  const routines = appData.workoutRoutines || [];
+
+  const handleLoadRoutine = (routine: WorkoutRoutine) => {
+    const loadedExercises: WorkoutExercise[] = routine.exercises.map((ex) => ({
+      id: createId("ex"),
+      exerciseId: ex.exerciseId,
+      name: ex.name,
+      notes: ex.notes,
+      sets: ex.sets.map((s, idx) => ({
+        id: createId("set"),
+        setNumber: idx + 1,
+        reps: s.reps,
+        weight: s.weight,
+        weightUnit: s.weightUnit || defaultWeightUnit,
+        completed: true,
+      })),
+    }));
+    onChange(loadedExercises);
+    if (onSelectRoutine) {
+      onSelectRoutine(routine);
+    }
+    setIsExpanded(true);
+    setIsRoutinePickerOpen(false);
+  };
+
+  const handleSaveCurrentAsRoutine = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanName = routineNameInput.trim();
+    if (!cleanName) return;
+    saveRoutine(cleanName, "strength", exercises);
+    setIsSavingRoutine(false);
+    setRoutineNameInput("");
+  };
 
   const filteredCatalog = searchExercises(
     searchQuery,
@@ -219,6 +265,122 @@ export function WorkoutSetBuilder({
       {/* Collapsible Content */}
       {isExpanded && (
         <div className="p-3.5 pt-1 space-y-4 border-t border-white/[0.06]">
+          {/* Action Toolbar: Routines & Timer */}
+          <div className="flex items-center justify-between gap-2 flex-wrap pt-1 pb-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRoutinePickerOpen(!isRoutinePickerOpen);
+                  setIsSavingRoutine(false);
+                }}
+                className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] hover:border-white/[0.15] text-[11px] font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+              >
+                <Bookmark className="w-3 h-3 text-indigo-400" />
+                <span>Load Routine</span>
+              </button>
+
+              {exercises.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsSavingRoutine(!isSavingRoutine);
+                    setIsRoutinePickerOpen(false);
+                  }}
+                  className="px-2.5 py-1 rounded-lg bg-zinc-800 hover:bg-zinc-700 border border-white/[0.08] hover:border-white/[0.15] text-[11px] font-semibold text-zinc-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                >
+                  <Save className="w-3 h-3 text-emerald-400" />
+                  <span>Save as Routine</span>
+                </button>
+              )}
+            </div>
+
+            <button
+              type="button"
+              onClick={() => startRestTimer(90)}
+              className="px-2.5 py-1 rounded-lg bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-[11px] font-mono font-semibold text-emerald-300 flex items-center gap-1.5 transition-colors cursor-pointer"
+              title="Launch 90s Rest Timer"
+            >
+              <Timer className="w-3 h-3 text-emerald-400" />
+              <span>Rest Timer</span>
+            </button>
+          </div>
+
+          {/* Routine Picker Dropdown / Modal */}
+          {isRoutinePickerOpen && (
+            <div className="p-3 rounded-2xl bg-zinc-900 border border-indigo-500/30 space-y-2.5 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-white">
+                  <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Select Routine / Split Template</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsRoutinePickerOpen(false)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                {routines.map((r) => (
+                  <button
+                    key={r.id}
+                    type="button"
+                    onClick={() => handleLoadRoutine(r)}
+                    className="w-full p-2.5 rounded-xl bg-white/[0.03] hover:bg-white/[0.08] border border-white/[0.06] hover:border-indigo-500/40 text-left transition-all cursor-pointer flex items-center justify-between group"
+                  >
+                    <div>
+                      <span className="text-xs font-bold text-white group-hover:text-indigo-300 block">
+                        {r.name}
+                      </span>
+                      <span className="text-[10px] text-zinc-400 font-mono block mt-0.5">
+                        {r.exercises.length} exercises • {r.exercises.reduce((acc, ex) => acc + ex.sets.length, 0)} sets
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-indigo-400 bg-indigo-500/10 px-2 py-0.5 rounded-md">
+                      Load
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Save Routine Form */}
+          {isSavingRoutine && (
+            <form onSubmit={handleSaveCurrentAsRoutine} className="p-3 rounded-2xl bg-zinc-900 border border-emerald-500/30 space-y-2.5 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-white">Save Current Workout as Routine</span>
+                <button
+                  type="button"
+                  onClick={() => setIsSavingRoutine(false)}
+                  className="text-xs text-zinc-400 hover:text-white cursor-pointer"
+                >
+                  Cancel
+                </button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Routine name (e.g. Heavy Upper Day, Leg Hypertrophy)"
+                  value={routineNameInput}
+                  onChange={(e) => setRoutineNameInput(e.target.value)}
+                  autoFocus
+                  className="flex-1 px-3 py-1.5 text-xs bg-white/[0.04] border border-white/[0.1] rounded-xl focus:outline-none focus:ring-1 focus:ring-emerald-500 text-white placeholder:text-zinc-500"
+                />
+                <button
+                  type="submit"
+                  disabled={!routineNameInput.trim()}
+                  className="px-3.5 py-1.5 bg-emerald-500 hover:bg-emerald-400 disabled:opacity-40 text-zinc-950 font-bold text-xs rounded-xl transition-all cursor-pointer"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          )}
+
           {/* List of Added Exercises */}
           {exercises.map((ex, exIdx) => (
             <div
@@ -267,90 +429,15 @@ export function WorkoutSetBuilder({
                 </div>
 
                 {ex.sets.map((set) => (
-                  <div
+                  <SetRowItem
                     key={set.id}
-                    className={`grid grid-cols-12 gap-1.5 items-center p-1.5 rounded-xl border transition-all ${
-                      set.completed
-                        ? "bg-white/[0.02] border-white/[0.06]"
-                        : "bg-zinc-950/40 border-white/[0.03] opacity-60"
-                    }`}
-                  >
-                    {/* Set Number */}
-                    <div className="col-span-2 text-xs font-mono font-bold text-zinc-400 pl-1">
-                      {set.setNumber}
-                    </div>
-
-                    {/* Weight Input */}
-                    <div className="col-span-4 relative">
-                      <input
-                        type="number"
-                        min="0"
-                        max="999"
-                        step="0.5"
-                        placeholder="0 (bw)"
-                        value={set.weight === 0 || set.weight === undefined ? "" : set.weight}
-                        onChange={(e) => {
-                          const val = e.target.value === "" ? 0 : parseFloat(e.target.value);
-                          handleUpdateSet(ex.id, set.id, {
-                            weight: isNaN(val) ? 0 : val,
-                          });
-                        }}
-                        className="w-full px-2 py-1 text-xs font-mono font-bold bg-white/[0.05] border border-white/[0.1] rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 text-white"
-                      />
-                    </div>
-
-                    {/* Reps Input */}
-                    <div className="col-span-3">
-                      <input
-                        type="number"
-                        min="0"
-                        max="999"
-                        placeholder="10"
-                        value={set.reps || ""}
-                        onChange={(e) => {
-                          const val = parseInt(e.target.value, 10);
-                          handleUpdateSet(ex.id, set.id, {
-                            reps: isNaN(val) ? 0 : val,
-                          });
-                        }}
-                        className="w-full px-2 py-1 text-xs font-mono font-bold bg-white/[0.05] border border-white/[0.1] rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 text-white"
-                      />
-                    </div>
-
-                    {/* Completed Toggle */}
-                    <div className="col-span-2 flex justify-center">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleUpdateSet(ex.id, set.id, {
-                            completed: !set.completed,
-                          })
-                        }
-                        className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
-                          set.completed
-                            ? "bg-emerald-500 border-emerald-400 text-zinc-950 shadow-xs shadow-emerald-500/40"
-                            : "bg-white/[0.03] border-white/20 text-zinc-600 hover:border-white/40"
-                        }`}
-                        aria-label="Toggle set completion"
-                      >
-                        <Check className="w-3.5 h-3.5 stroke-[3]" />
-                      </button>
-                    </div>
-
-                    {/* Delete Set */}
-                    <div className="col-span-1 flex justify-end">
-                      {ex.sets.length > 1 && (
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSet(ex.id, set.id)}
-                          aria-label="Delete set"
-                          className="p-1 text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      )}
-                    </div>
-                  </div>
+                    exerciseId={ex.id}
+                    set={set}
+                    canDelete={ex.sets.length > 1}
+                    onUpdateSet={handleUpdateSet}
+                    onRemoveSet={handleRemoveSet}
+                    onStartRestTimer={startRestTimer}
+                  />
                 ))}
               </div>
             </div>
@@ -464,6 +551,168 @@ export function WorkoutSetBuilder({
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+interface SetRowItemProps {
+  exerciseId: string;
+  set: WorkoutSet;
+  canDelete: boolean;
+  onUpdateSet: (exerciseId: string, setId: string, updates: Partial<WorkoutSet>) => void;
+  onRemoveSet: (exerciseId: string, setId: string) => void;
+  onStartRestTimer: (seconds: number) => void;
+}
+
+function SetRowItem({
+  exerciseId,
+  set,
+  canDelete,
+  onUpdateSet,
+  onRemoveSet,
+  onStartRestTimer,
+}: SetRowItemProps) {
+  const [prevWeight, setPrevWeight] = useState(set.weight);
+  const [weightStr, setWeightStr] = useState(() =>
+    set.weight === 0 || set.weight === undefined ? "" : String(set.weight)
+  );
+
+  if (set.weight !== prevWeight) {
+    setPrevWeight(set.weight);
+    const currentParsed = weightStr === "" ? 0 : parseFloat(weightStr);
+    const target = set.weight === undefined ? 0 : set.weight;
+    if (currentParsed !== target) {
+      setWeightStr(target === 0 ? "" : String(target));
+    }
+  }
+
+  const [prevReps, setPrevReps] = useState(set.reps);
+  const [repsStr, setRepsStr] = useState(() =>
+    set.reps === undefined ? "" : String(set.reps)
+  );
+
+  if (set.reps !== prevReps) {
+    setPrevReps(set.reps);
+    const currentParsed = repsStr === "" ? 0 : parseInt(repsStr, 10);
+    const target = set.reps === undefined ? 0 : set.reps;
+    if (currentParsed !== target) {
+      setRepsStr(target === 0 ? "" : String(target));
+    }
+  }
+
+  const handleWeightChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setWeightStr(val);
+    const parsed = val === "" ? 0 : parseFloat(val);
+    if (!isNaN(parsed) && parsed >= 0) {
+      onUpdateSet(exerciseId, set.id, { weight: parsed });
+    }
+  };
+
+  const handleWeightBlur = () => {
+    const parsed = weightStr === "" ? 0 : parseFloat(weightStr);
+    if (isNaN(parsed) || parsed < 0) {
+      setWeightStr("");
+      onUpdateSet(exerciseId, set.id, { weight: 0 });
+    }
+  };
+
+  const handleRepsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setRepsStr(val);
+    const parsed = parseInt(val, 10);
+    if (!isNaN(parsed) && parsed >= 0) {
+      onUpdateSet(exerciseId, set.id, { reps: parsed });
+    }
+  };
+
+  const handleRepsBlur = () => {
+    const parsed = repsStr === "" ? 0 : parseInt(repsStr, 10);
+    if (isNaN(parsed) || parsed < 0) {
+      setRepsStr("");
+      onUpdateSet(exerciseId, set.id, { reps: 0 });
+    }
+  };
+
+  return (
+    <div
+      className={`grid grid-cols-12 gap-1.5 items-center p-1.5 rounded-xl border transition-all ${
+        set.completed
+          ? "bg-white/[0.02] border-white/[0.06]"
+          : "bg-zinc-950/40 border-white/[0.03] opacity-60"
+      }`}
+    >
+      {/* Set Number */}
+      <div className="col-span-2 text-xs font-mono font-bold text-zinc-400 pl-1">
+        {set.setNumber}
+      </div>
+
+      {/* Weight Input */}
+      <div className="col-span-4 relative">
+        <input
+          type="number"
+          min="0"
+          max="999"
+          step="0.5"
+          placeholder="0 (bw)"
+          value={weightStr}
+          onChange={handleWeightChange}
+          onBlur={handleWeightBlur}
+          className="w-full px-2 py-1 text-xs font-mono font-bold bg-white/[0.05] border border-white/[0.1] rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+        />
+      </div>
+
+      {/* Reps Input */}
+      <div className="col-span-3">
+        <input
+          type="number"
+          min="0"
+          max="999"
+          placeholder="10"
+          value={repsStr}
+          onChange={handleRepsChange}
+          onBlur={handleRepsBlur}
+          className="w-full px-2 py-1 text-xs font-mono font-bold bg-white/[0.05] border border-white/[0.1] rounded-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 text-white"
+        />
+      </div>
+
+      {/* Completed Toggle */}
+      <div className="col-span-2 flex justify-center">
+        <button
+          type="button"
+          onClick={() => {
+            const nextCompleted = !set.completed;
+            onUpdateSet(exerciseId, set.id, {
+              completed: nextCompleted,
+            });
+            if (nextCompleted) {
+              onStartRestTimer(90);
+            }
+          }}
+          className={`w-6 h-6 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
+            set.completed
+              ? "bg-emerald-500 border-emerald-400 text-zinc-950 shadow-xs shadow-emerald-500/40"
+              : "bg-white/[0.03] border-white/20 text-zinc-600 hover:border-white/40"
+          }`}
+          aria-label="Toggle set completion"
+        >
+          <Check className="w-3.5 h-3.5 stroke-[3]" />
+        </button>
+      </div>
+
+      {/* Delete Set */}
+      <div className="col-span-1 flex justify-end">
+        {canDelete && (
+          <button
+            type="button"
+            onClick={() => onRemoveSet(exerciseId, set.id)}
+            aria-label="Delete set"
+            className="p-1 text-zinc-600 hover:text-rose-400 transition-colors cursor-pointer"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }

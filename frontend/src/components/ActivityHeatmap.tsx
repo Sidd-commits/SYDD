@@ -38,6 +38,16 @@ export function ActivityHeatmap() {
   const weeks = buildHeatmapWeeks(selectedYear, today);
   const { currentStreak, bestStreak, totalActiveDays } = calculateStreaks(appData, today);
 
+  const cellsMap = React.useMemo(() => {
+    const map = new Map<ISODate, ReturnType<typeof calculateHeatmapCell>>();
+    for (const week of weeks) {
+      for (const day of week.days) {
+        map.set(day.date, calculateHeatmapCell(appData, day.date));
+      }
+    }
+    return map;
+  }, [appData, weeks]);
+
   // Auto-scroll mobile view to the latest week so users instantly see current activity
   useEffect(() => {
     if (gridScrollRef.current) {
@@ -197,7 +207,7 @@ export function ActivityHeatmap() {
                 <div key={week.weekNumber} className="flex flex-col gap-1">
                   {week.days.map((day) => {
                     const isToday = day.date === today;
-                    const cell = calculateHeatmapCell(appData, day.date);
+                    const cell = cellsMap.get(day.date)!;
                     const accessibleLabel = getAccessibleLabel(day.date, cell.level, day.isFuture);
 
                     return (

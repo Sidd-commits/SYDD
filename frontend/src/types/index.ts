@@ -41,6 +41,17 @@ export type Workout = {
   updatedAt: string;
 };
 
+export type WorkoutRoutine = {
+  id: string;
+  name: string;
+  type: WorkoutType;
+  durationMinutes?: number;
+  notes?: string;
+  exercises: WorkoutExercise[];
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type Habit = {
   id: string;
   name: string;
@@ -59,6 +70,9 @@ export type HabitCompletion = {
 export type Goals = {
   stepsPerDay: number;
   caloriesConsumedKcalPerDay: number;
+  proteinGPerDay?: number;
+  carbsGPerDay?: number;
+  fatGPerDay?: number;
   waterMlPerDay: number;
   workoutMinutesPerDay: number;
   workoutGoalEnabled: boolean;
@@ -98,12 +112,27 @@ export type ExerciseDefinition = {
   equipment: EquipmentType;
 };
 
+export type NutritionEntry = {
+  id: string;
+  date: ISODate;
+  name: string;
+  calories: number; // Mandatory >= 0
+  proteinG?: number; // Optional >= 0
+  carbsG?: number; // Optional >= 0
+  fatG?: number; // Optional >= 0
+  time?: string; // Optional e.g. "12:30"
+  createdAt: string;
+  updatedAt: string;
+};
+
 export type AppData = {
   settings: AppSettings;
   dailyRecords: DailyRecord[];
   workouts: Workout[];
   habits: Habit[];
   habitCompletions: HabitCompletion[];
+  nutritionEntries: NutritionEntry[];
+  workoutRoutines: WorkoutRoutine[];
 };
 
 export type HeatmapCell = {
@@ -129,6 +158,12 @@ export type DaySummary = {
   stepsMet: boolean;
   caloriesConsumed: number;
   caloriesGoal: number;
+  proteinConsumedG?: number;
+  proteinGoalG?: number;
+  carbsConsumedG?: number;
+  carbsGoalG?: number;
+  fatConsumedG?: number;
+  fatGoalG?: number;
   waterMl: number;
   waterGoal: number;
   waterMet: boolean;
@@ -139,10 +174,12 @@ export type DaySummary = {
   completedHabits: Habit[];
   pendingHabits: Habit[];
   workouts: Workout[];
+  nutritionEntries: NutritionEntry[];
   score: number;
   level: -1 | 0 | 1 | 2 | 3 | 4;
   hasData: boolean;
   activeDay: boolean; // At least 1 goal met or 1 habit completed
+  record?: DailyRecord;
 };
 
 export type ActiveTab = "overview" | "history" | "habits" | "settings";

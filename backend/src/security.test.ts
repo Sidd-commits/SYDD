@@ -1,7 +1,28 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import http from "node:http";
+import os from "node:os";
+import path from "node:path";
+import fs from "node:fs";
+import { BackendStorageService } from "./services/storageService.js";
 import { SyncController } from "./controllers/syncController.js";
+
+// Isolate tests into a temporary sandbox directory
+const sandboxDataDir = path.join(
+  os.tmpdir(),
+  `sydd-sec-test-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`
+);
+process.env.DATA_DIR = sandboxDataDir;
+BackendStorageService.resetForTesting();
+
+test.after(() => {
+  try {
+    if (fs.existsSync(sandboxDataDir)) {
+      fs.rmSync(sandboxDataDir, { recursive: true, force: true });
+    }
+  } catch {
+    // Ignore cleanup errors on temp dir
+  }
+});
 
 test("SyncController.handleSync rejects malformed or unvalidated payloads", () => {
   // Missing data field

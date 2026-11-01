@@ -104,11 +104,20 @@ export function OverviewView() {
           target={goals.caloriesConsumedKcalPerDay}
           unit="kcal"
           isGoalMet={false}
-          hasData={summary.caloriesConsumed > 0 || appData.dailyRecords.some((r) => r.date === today && r.caloriesConsumedKcal !== undefined)}
+          hasData={
+            summary.caloriesConsumed > 0 ||
+            appData.dailyRecords.some((r) => r.date === today && r.caloriesConsumedKcal !== undefined) ||
+            (appData.nutritionEntries || []).some((n) => n.date === today)
+          }
           subtitle="Informational intake tracking only"
+          macroSummary={{
+            proteinG: summary.proteinConsumedG,
+            carbsG: summary.carbsConsumedG,
+            fatG: summary.fatConsumedG,
+          }}
           onEdit={() => openQuickLog("calories")}
           onQuickAdd={() => openQuickLog("calories")}
-          quickAddOptions={[{ label: "Log Calories", amount: 0 }]}
+          quickAddOptions={[{ label: "Log Food", amount: 0 }]}
         />
       </div>
 

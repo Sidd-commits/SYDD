@@ -15,9 +15,11 @@ import {
   Goals,
   Habit,
   ISODate,
+  NutritionEntry,
   WeightUnit,
   Workout,
   WorkoutExercise,
+  WorkoutRoutine,
   WorkoutType,
 } from "@/types";
 import { StorageService, getDefaultAppData, validateAndMigrateData } from "@/lib/storage";
@@ -40,9 +42,15 @@ type AppContextType = {
   selectedDate: ISODate;
   setSelectedDate: (date: ISODate) => void;
   isQuickLogOpen: boolean;
-  openQuickLog: (defaultMetric?: "steps" | "calories" | "water" | "workout") => void;
+  quickLogTargetDate: ISODate | null;
+  openQuickLog: (
+    defaultMetric?: "steps" | "calories" | "water" | "workout",
+    entryToEdit?: NutritionEntry | null,
+    targetDate?: ISODate
+  ) => void;
   closeQuickLog: () => void;
   quickLogMetric: "steps" | "calories" | "water" | "workout";
+  editingNutritionEntry: NutritionEntry | null;
   isDayDetailOpen: boolean;
   openDayDetail: (date: ISODate) => void;
   closeDayDetail: () => void;
@@ -53,6 +61,17 @@ type AppContextType = {
   // Logging & Data Actions
   logSteps: (steps: number, date?: ISODate) => void;
   logCalories: (calories: number, date?: ISODate) => void;
+  addNutritionEntry: (entry: {
+    date?: ISODate;
+    name: string;
+    calories: number;
+    proteinG?: number;
+    carbsG?: number;
+    fatG?: number;
+    time?: string;
+  }) => void;
+  updateNutritionEntry: (entry: NutritionEntry) => void;
+  deleteNutritionEntry: (id: string) => void;
   logWater: (amountMl: number, mode?: "set" | "add", date?: ISODate) => void;
   saveDailyNotes: (notes: string, date?: ISODate) => void;
   addWorkout: (
@@ -64,6 +83,12 @@ type AppContextType = {
   ) => void;
   updateWorkout: (workout: Workout) => void;
   deleteWorkout: (id: string) => void;
+  saveRoutine: (name: string, type: WorkoutType, exercises: WorkoutExercise[], notes?: string) => void;
+  deleteRoutine: (id: string) => void;
+  isRestTimerOpen: boolean;
+  restTimerSeconds: number;
+  startRestTimer: (seconds?: number) => void;
+  closeRestTimer: () => void;
   updateUnitWeight: (unit: WeightUnit) => void;
   toggleHabit: (habitId: string, date?: ISODate) => void;
   addHabit: (name: string) => void;
@@ -162,8 +187,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const [isQuickLogOpen, setIsQuickLogOpen] = useState(false);
   const [quickLogMetric, setQuickLogMetric] = useState<"steps" | "calories" | "water" | "workout">("steps");
+  const [editingNutritionEntry, setEditingNutritionEntry] = useState<NutritionEntry | null>(null);
   const [isDayDetailOpen, setIsDayDetailOpen] = useState(false);
+  const [quickLogTargetDate, setQuickLogTargetDate] = useState<ISODate | null>(null);
+  const [isRestTimerOpen, setIsRestTimerOpen] = useState(false);
+  const [restTimerSeconds, setRestTimerSeconds] = useState(90);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+
+  const startRestTimer = (seconds: number = 90) => {
+    setRestTimerSeconds(seconds);
+    setIsRestTimerOpen(true);
+  };
+
+  const closeRestTimer = () => {
+    setIsRestTimerOpen(false);
+  };
 
   // Synchronize modal open states with body scroll lock
   useEffect(() => {
@@ -231,6 +269,18 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const scheduleBackgroundSync = useCallback((data: AppData) => {
+    // Safety guard: prevent automated background overwrite if the client state has zero records
+    // (e.g. freshly cleared localStorage or new device before user restores data)
+    const hasRecords =
+      (data.dailyRecords && data.dailyRecords.length > 0) ||
+      (data.workouts && data.workouts.length > 0) ||
+      (data.nutritionEntries && data.nutritionEntries.length > 0) ||
+      (data.habitCompletions && data.habitCompletions.length > 0);
+
+    if (!hasRecords) {
+      return;
+    }
+
     if (syncDebounceRef.current) {
       clearTimeout(syncDebounceRef.current);
     }
@@ -292,19 +342,32 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     scheduleBackgroundSync(next);
   };
 
-  const openQuickLog = (metric: "steps" | "calories" | "water" | "workout" = "steps") => {
+  const openQuickLog = (
+    metric: "steps" | "calories" | "water" | "workout" = "steps",
+    entryToEdit?: NutritionEntry | null,
+    targetDate?: ISODate
+  ) => {
     setQuickLogMetric(metric);
+    setEditingNutritionEntry(entryToEdit || null);
+    setQuickLogTargetDate(targetDate || null);
     setIsQuickLogOpen(true);
   };
 
-  const closeQuickLog = () => setIsQuickLogOpen(false);
+  const closeQuickLog = () => {
+    setIsQuickLogOpen(false);
+    setEditingNutritionEntry(null);
+    setQuickLogTargetDate(null);
+  };
 
   const openDayDetail = (date: ISODate) => {
     setSelectedDate(date);
     setIsDayDetailOpen(true);
   };
 
-  const closeDayDetail = () => setIsDayDetailOpen(false);
+  const closeDayDetail = () => {
+    setIsDayDetailOpen(false);
+    setSelectedDateOverride(null);
+  };
 
   const logSteps = (steps: number, date: ISODate = selectedDate) => {
     const cleanSteps = Math.max(0, Math.floor(steps));
@@ -350,6 +413,169 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       return { ...prev, dailyRecords: records };
     });
     showToast(`Calories recorded: ${cleanCalories.toLocaleString()} kcal consumed`);
+  };
+
+  const addNutritionEntry = (entry: {
+    date?: ISODate;
+    name: string;
+    calories: number;
+    proteinG?: number;
+    carbsG?: number;
+    fatG?: number;
+    time?: string;
+  }) => {
+    const entryDate = entry.date || selectedDate;
+    const cleanCalories = Math.max(0, Math.floor(entry.calories));
+    const cleanName = entry.name.trim() || "Meal";
+    const cleanProtein =
+      typeof entry.proteinG === "number" && !isNaN(entry.proteinG)
+        ? Math.max(0, Math.round(entry.proteinG * 10) / 10)
+        : undefined;
+    const cleanCarbs =
+      typeof entry.carbsG === "number" && !isNaN(entry.carbsG)
+        ? Math.max(0, Math.round(entry.carbsG * 10) / 10)
+        : undefined;
+    const cleanFat =
+      typeof entry.fatG === "number" && !isNaN(entry.fatG)
+        ? Math.max(0, Math.round(entry.fatG * 10) / 10)
+        : undefined;
+
+    const newEntry: NutritionEntry = {
+      id: `nutr-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      date: entryDate,
+      name: cleanName,
+      calories: cleanCalories,
+      proteinG: cleanProtein,
+      carbsG: cleanCarbs,
+      fatG: cleanFat,
+      time: entry.time?.trim() || undefined,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    updateData((prev) => {
+      const nextNutritionEntries = [...(prev.nutritionEntries || []), newEntry];
+      // Keep dailyRecords.caloriesConsumedKcal in sync with total for that date
+      const dateNutrition = nextNutritionEntries.filter((e) => e.date === entryDate);
+      const totalCalories = dateNutrition.reduce((sum, e) => sum + e.calories, 0);
+
+      const existingRecordIdx = prev.dailyRecords.findIndex((r) => r.date === entryDate);
+      const records = [...prev.dailyRecords];
+      if (existingRecordIdx >= 0) {
+        records[existingRecordIdx] = {
+          ...records[existingRecordIdx],
+          caloriesConsumedKcal: totalCalories,
+          updatedAt: new Date().toISOString(),
+        };
+      } else {
+        records.push({
+          date: entryDate,
+          caloriesConsumedKcal: totalCalories,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      return {
+        ...prev,
+        nutritionEntries: nextNutritionEntries,
+        dailyRecords: records,
+      };
+    });
+
+    showToast(`Logged "${cleanName}": ${cleanCalories} kcal`);
+  };
+
+  const updateNutritionEntry = (entry: NutritionEntry) => {
+    const cleanCalories = Math.max(0, Math.floor(entry.calories));
+    const cleanName = entry.name.trim() || "Meal";
+    const cleanProtein =
+      typeof entry.proteinG === "number" && !isNaN(entry.proteinG)
+        ? Math.max(0, Math.round(entry.proteinG * 10) / 10)
+        : undefined;
+    const cleanCarbs =
+      typeof entry.carbsG === "number" && !isNaN(entry.carbsG)
+        ? Math.max(0, Math.round(entry.carbsG * 10) / 10)
+        : undefined;
+    const cleanFat =
+      typeof entry.fatG === "number" && !isNaN(entry.fatG)
+        ? Math.max(0, Math.round(entry.fatG * 10) / 10)
+        : undefined;
+
+    updateData((prev) => {
+      const nextNutritionEntries = (prev.nutritionEntries || []).map((e) =>
+        e.id === entry.id
+          ? {
+              ...entry,
+              name: cleanName,
+              calories: cleanCalories,
+              proteinG: cleanProtein,
+              carbsG: cleanCarbs,
+              fatG: cleanFat,
+              updatedAt: new Date().toISOString(),
+            }
+          : e
+      );
+
+      // Recompute calories for that date
+      const dateNutrition = nextNutritionEntries.filter((e) => e.date === entry.date);
+      const totalCalories = dateNutrition.reduce((sum, e) => sum + e.calories, 0);
+
+      const existingRecordIdx = prev.dailyRecords.findIndex((r) => r.date === entry.date);
+      const records = [...prev.dailyRecords];
+      if (existingRecordIdx >= 0) {
+        records[existingRecordIdx] = {
+          ...records[existingRecordIdx],
+          caloriesConsumedKcal: totalCalories,
+          updatedAt: new Date().toISOString(),
+        };
+      } else {
+        records.push({
+          date: entry.date,
+          caloriesConsumedKcal: totalCalories,
+          updatedAt: new Date().toISOString(),
+        });
+      }
+
+      return {
+        ...prev,
+        nutritionEntries: nextNutritionEntries,
+        dailyRecords: records,
+      };
+    });
+
+    showToast(`Updated "${cleanName}"`);
+  };
+
+  const deleteNutritionEntry = (id: string) => {
+    updateData((prev) => {
+      const target = (prev.nutritionEntries || []).find((e) => e.id === id);
+      if (!target) return prev;
+
+      const nextNutritionEntries = (prev.nutritionEntries || []).filter((e) => e.id !== id);
+      const dateNutrition = nextNutritionEntries.filter((e) => e.date === target.date);
+      const totalCalories =
+        dateNutrition.length > 0
+          ? dateNutrition.reduce((sum, e) => sum + e.calories, 0)
+          : undefined;
+
+      const existingRecordIdx = prev.dailyRecords.findIndex((r) => r.date === target.date);
+      const records = [...prev.dailyRecords];
+      if (existingRecordIdx >= 0) {
+        records[existingRecordIdx] = {
+          ...records[existingRecordIdx],
+          caloriesConsumedKcal: totalCalories,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      return {
+        ...prev,
+        nutritionEntries: nextNutritionEntries,
+        dailyRecords: records,
+      };
+    });
+
+    showToast("Meal removed", "info");
   };
 
   const logWater = (amountMl: number, mode: "set" | "add" = "set", date: ISODate = selectedDate) => {
@@ -447,6 +673,57 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       workouts: prev.workouts.filter((w) => w.id !== id),
     }));
     showToast("Workout removed", "info");
+  };
+
+  const saveRoutine = (name: string, type: WorkoutType, exercises: WorkoutExercise[], notes?: string) => {
+    const cleanName = name.trim();
+    if (!cleanName) return;
+
+    const newRoutine: WorkoutRoutine = {
+      id: `routine-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      name: cleanName,
+      type,
+      notes: notes?.trim() || undefined,
+      exercises: exercises.map((ex) => ({
+        id: `rex-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+        exerciseId: ex.exerciseId,
+        name: ex.name,
+        notes: ex.notes,
+        sets: ex.sets.map((s, idx) => ({
+          id: `rset-${idx + 1}-${Math.random().toString(36).substring(2, 6)}`,
+          setNumber: idx + 1,
+          reps: s.reps,
+          weight: s.weight,
+          weightUnit: s.weightUnit,
+          completed: true,
+        })),
+      })),
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    updateData((prev) => {
+      // If a routine with same name exists, update it, else append
+      const existingIdx = (prev.workoutRoutines || []).findIndex(
+        (r) => r.name.toLowerCase() === cleanName.toLowerCase()
+      );
+      if (existingIdx >= 0) {
+        const updated = [...(prev.workoutRoutines || [])];
+        updated[existingIdx] = { ...newRoutine, id: updated[existingIdx].id };
+        return { ...prev, workoutRoutines: updated };
+      }
+      return { ...prev, workoutRoutines: [...(prev.workoutRoutines || []), newRoutine] };
+    });
+
+    showToast(`Saved routine "${cleanName}" (${exercises.length} exercises)`);
+  };
+
+  const deleteRoutine = (id: string) => {
+    updateData((prev) => ({
+      ...prev,
+      workoutRoutines: (prev.workoutRoutines || []).filter((r) => r.id !== id),
+    }));
+    showToast("Routine removed", "info");
   };
 
   const updateUnitWeight = (unit: WeightUnit) => {
@@ -632,6 +909,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         openQuickLog,
         closeQuickLog,
         quickLogMetric,
+        editingNutritionEntry,
+        quickLogTargetDate,
         isDayDetailOpen,
         openDayDetail,
         closeDayDetail,
@@ -640,11 +919,20 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         removeToast,
         logSteps,
         logCalories,
+        addNutritionEntry,
+        updateNutritionEntry,
+        deleteNutritionEntry,
         logWater,
         saveDailyNotes,
         addWorkout,
         updateWorkout,
         deleteWorkout,
+        saveRoutine,
+        deleteRoutine,
+        isRestTimerOpen,
+        restTimerSeconds,
+        startRestTimer,
+        closeRestTimer,
         updateUnitWeight,
         toggleHabit,
         addHabit,

@@ -12,6 +12,11 @@ type MetricCardProps = {
   isGoalMet?: boolean;
   hasData: boolean;
   subtitle?: string;
+  macroSummary?: {
+    proteinG?: number;
+    carbsG?: number;
+    fatG?: number;
+  };
   onEdit: () => void;
   onQuickAdd?: (amount: number) => void;
   quickAddOptions?: { label: string; amount: number }[];
@@ -26,6 +31,7 @@ export function MetricCard({
   isGoalMet = false,
   hasData,
   subtitle,
+  macroSummary,
   onEdit,
   onQuickAdd,
   quickAddOptions,
@@ -172,6 +178,26 @@ export function MetricCard({
           <p className="mt-2 text-xs text-zinc-400">
             {subtitle}
           </p>
+        )}
+
+        {macroSummary && (macroSummary.proteinG !== undefined || macroSummary.carbsG !== undefined || macroSummary.fatG !== undefined) && (
+          <div className="mt-2.5 flex items-center gap-1.5 flex-wrap">
+            {macroSummary.proteinG !== undefined && (
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                P: {Math.round(macroSummary.proteinG)}g
+              </span>
+            )}
+            {macroSummary.carbsG !== undefined && (
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-400 border border-sky-500/20">
+                C: {Math.round(macroSummary.carbsG)}g
+              </span>
+            )}
+            {macroSummary.fatG !== undefined && (
+              <span className="text-[10px] font-mono font-semibold px-2 py-0.5 rounded-md bg-rose-500/10 text-rose-400 border border-rose-500/20">
+                F: {Math.round(macroSummary.fatG)}g
+              </span>
+            )}
+          </div>
         )}
       </div>
 

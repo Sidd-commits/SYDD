@@ -1,5 +1,5 @@
 import { AppData, DailyRecord, DaySummary, Goals, Habit, HeatmapCell, ISODate, Workout } from "@/types";
-import { addDays, getPast7Days, getPastNDays, parseISODate } from "./dateUtils";
+import { addDays, differenceInDays, getPast7Days, getPastNDays, getTodayISODate, parseISODate } from "./dateUtils";
 
 /**
  * Returns the daily record for a date or undefined if none exists.
@@ -56,7 +56,28 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
   const stepsGoal = goals.stepsPerDay;
   const stepsMet = hasSteps && stepsGoal > 0 && steps >= stepsGoal;
 
-  const caloriesConsumed = record?.caloriesConsumedKcal ?? 0;
+  const dayNutrition = (data.nutritionEntries || []).filter((e) => e.date === date);
+  const hasNutritionEntries = dayNutrition.length > 0;
+
+  // Calories: if granular nutrition entries exist, sum them. Otherwise fall back to legacy record.caloriesConsumedKcal.
+  const caloriesConsumed = hasNutritionEntries
+    ? dayNutrition.reduce((sum, e) => sum + (e.calories || 0), 0)
+    : (record?.caloriesConsumedKcal ?? 0);
+
+  const hasProtein = dayNutrition.some((e) => typeof e.proteinG === "number");
+  const proteinConsumedG = hasProtein
+    ? dayNutrition.reduce((sum, e) => sum + (e.proteinG || 0), 0)
+    : undefined;
+
+  const hasCarbs = dayNutrition.some((e) => typeof e.carbsG === "number");
+  const carbsConsumedG = hasCarbs
+    ? dayNutrition.reduce((sum, e) => sum + (e.carbsG || 0), 0)
+    : undefined;
+
+  const hasFat = dayNutrition.some((e) => typeof e.fatG === "number");
+  const fatConsumedG = hasFat
+    ? dayNutrition.reduce((sum, e) => sum + (e.fatG || 0), 0)
+    : undefined;
 
   const waterMl = record?.waterMl ?? 0;
   const hasWater = record?.waterMl !== undefined;
@@ -87,6 +108,7 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
     hasSteps ||
     hasWater ||
     record?.caloriesConsumedKcal !== undefined ||
+    hasNutritionEntries ||
     hasWorkouts ||
     hasHabitActivity ||
     (record?.notes !== undefined && record.notes.trim().length > 0);
@@ -164,6 +186,12 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
     stepsMet,
     caloriesConsumed,
     caloriesGoal: goals.caloriesConsumedKcalPerDay,
+    proteinConsumedG,
+    proteinGoalG: goals.proteinGPerDay ?? 130,
+    carbsConsumedG,
+    carbsGoalG: goals.carbsGPerDay ?? 225,
+    fatConsumedG,
+    fatGoalG: goals.fatGPerDay ?? 65,
     waterMl,
     waterGoal,
     waterMet,
@@ -174,10 +202,12 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
     completedHabits,
     pendingHabits,
     workouts,
+    nutritionEntries: dayNutrition,
     score,
     level,
     hasData,
     activeDay,
+    record,
   };
 }
 
@@ -186,7 +216,7 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
  */
 export function calculateHeatmapCell(data: AppData, date: ISODate): HeatmapCell {
   const summary = calculateDaySummary(data, date);
-  const activeHabits = getActiveHabitsForDate(data, date);
+  const totalActiveHabitsCount = summary.completedHabits.length + summary.pendingHabits.length;
 
   return {
     date,
@@ -195,13 +225,13 @@ export function calculateHeatmapCell(data: AppData, date: ISODate): HeatmapCell 
     hasData: summary.hasData,
     stepProgress: summary.stepsGoal > 0 ? summary.steps / summary.stepsGoal : 0,
     waterProgress: summary.waterGoal > 0 ? summary.waterMl / summary.waterGoal : 0,
-    habitProgress: activeHabits.length > 0 ? summary.completedHabits.length / activeHabits.length : 0,
+    habitProgress: totalActiveHabitsCount > 0 ? summary.completedHabits.length / totalActiveHabitsCount : 0,
     workoutProgress: summary.workoutGoal > 0 ? summary.workoutMinutes / summary.workoutGoal : 0,
     isGoalReached: summary.level === 4,
-    record: getDailyRecord(data, date),
+    record: summary.record,
     workouts: summary.workouts,
     completedHabitsCount: summary.completedHabits.length,
-    totalActiveHabitsCount: activeHabits.length,
+    totalActiveHabitsCount,
   };
 }
 
@@ -214,7 +244,7 @@ export function calculateStreaks(data: AppData, referenceToday?: ISODate): {
   bestStreak: number;
   totalActiveDays: number;
 } {
-  const today = referenceToday || "2026-10-27";
+  const today = referenceToday || getTodayISODate();
 
   // Find all dates that have active days
   const activeDatesSet = new Set<ISODate>();
@@ -270,9 +300,7 @@ export function calculateStreaks(data: AppData, referenceToday?: ISODate): {
       if (!prevDate) {
         tempStreak = 1;
       } else {
-        const diff = Math.round(
-          (new Date(d).getTime() - new Date(prevDate).getTime()) / (1000 * 60 * 60 * 24)
-        );
+        const diff = differenceInDays(d, prevDate);
         if (diff === 1) {
           tempStreak++;
         } else {
@@ -296,7 +324,7 @@ export function calculateStreaks(data: AppData, referenceToday?: ISODate): {
 /**
  * Calculates 7-day weekly recap ending on referenceDate (default today).
  */
-export function calculateWeeklyRecap(data: AppData, referenceDate: ISODate = "2026-10-27") {
+export function calculateWeeklyRecap(data: AppData, referenceDate: ISODate = getTodayISODate()) {
   const dates = getPast7Days(referenceDate);
   let totalSteps = 0;
   let daysWithSteps = 0;
@@ -541,16 +569,22 @@ export function calculatePersonalRecords(data: AppData, referenceDate?: ISODate)
     (w.exercises || []).forEach((ex) => {
       (ex.sets || []).forEach((s) => {
         if (s.completed && typeof s.weight === "number" && s.weight > 0) {
+          const sUnit = s.weightUnit || "kg";
+          const sNormKg = sUnit === "lbs" ? s.weight * 0.453592 : s.weight;
           const current = exercisePRMap.get(ex.name);
+          const currNormKg = current
+            ? (current.weightUnit === "lbs" ? current.maxWeight * 0.453592 : current.maxWeight)
+            : 0;
+
           if (
             !current ||
-            s.weight > current.maxWeight ||
-            (s.weight === current.maxWeight && s.reps > current.reps)
+            sNormKg > currNormKg ||
+            (Math.abs(sNormKg - currNormKg) < 0.001 && s.reps > current.reps)
           ) {
             exercisePRMap.set(ex.name, {
               maxWeight: s.weight,
               reps: s.reps,
-              weightUnit: s.weightUnit || "kg",
+              weightUnit: sUnit,
               date: w.date,
             });
           }

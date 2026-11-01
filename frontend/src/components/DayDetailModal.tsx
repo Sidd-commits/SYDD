@@ -19,6 +19,7 @@ import {
   ChevronDown,
   ChevronUp,
   Check,
+  Utensils,
 } from "lucide-react";
 
 export function DayDetailModal() {
@@ -36,6 +37,7 @@ function DayDetailModalContent() {
     openQuickLog,
     toggleHabit,
     deleteWorkout,
+    deleteNutritionEntry,
     saveDailyNotes,
     today,
   } = useApp();
@@ -201,8 +203,235 @@ function DayDetailModalContent() {
                 <span className="text-xl font-extrabold font-mono tracking-tight tabular-nums text-white">
                   {summary.caloriesConsumed > 0 ? summary.caloriesConsumed.toLocaleString() : "—"}
                 </span>
-                <span className="text-xs text-zinc-400 font-mono">kcal</span>
+                <span className="text-xs text-zinc-400 font-mono">/ {summary.caloriesGoal.toLocaleString()} kcal</span>
               </div>
+            </div>
+          </div>
+
+          {/* Nutrition & Daily Food Log */}
+          <div>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-xs font-semibold text-zinc-300 uppercase tracking-wide flex items-center gap-1.5">
+                <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                <span>Nutrition & Daily Food Log ({summary.nutritionEntries.length})</span>
+              </h3>
+              <button
+                onClick={() => {
+                  const target = selectedDate;
+                  closeDayDetail();
+                  openQuickLog("calories", null, target);
+                }}
+                className="text-xs font-bold text-amber-400 hover:text-amber-300 flex items-center gap-1 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Add Food</span>
+              </button>
+            </div>
+
+            {/* Nutrition Targets & Macro Summary Card */}
+            <div className="p-3.5 rounded-2xl bg-zinc-900/70 border border-white/[0.08] space-y-3">
+              {/* Primary Calorie Progress Bar */}
+              <div>
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="text-zinc-300 font-medium">Daily Calories</span>
+                  <div className="flex items-baseline gap-1 font-mono">
+                    <span className="font-extrabold text-white text-sm">
+                      {summary.caloriesConsumed > 0 ? summary.caloriesConsumed.toLocaleString() : "0"}
+                    </span>
+                    <span className="text-zinc-400 text-xs">/ {summary.caloriesGoal.toLocaleString()} kcal</span>
+                  </div>
+                </div>
+                <div className="h-1.5 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-amber-500 rounded-full transition-all duration-300"
+                    style={{
+                      width: `${summary.caloriesGoal > 0 ? Math.min(100, Math.round((summary.caloriesConsumed / summary.caloriesGoal) * 100)) : 0}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* 3 Macro Progress Indicators Grid */}
+              <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.06]">
+                {/* Protein */}
+                <div className="p-2 rounded-xl bg-zinc-950/60 border border-white/[0.05]">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="text-zinc-400 font-medium">Protein</span>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {summary.proteinGoalG}g
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1 font-mono">
+                    <span className="text-sm font-bold text-white">
+                      {summary.proteinConsumedG !== undefined ? `${Math.round(summary.proteinConsumedG)}` : "—"}
+                    </span>
+                    {summary.proteinConsumedG !== undefined && <span className="text-[10px] text-zinc-400">g</span>}
+                  </div>
+                  <div className="mt-1.5 h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-emerald-400 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${
+                          summary.proteinConsumedG !== undefined && (summary.proteinGoalG || 0) > 0
+                            ? Math.min(100, Math.round((summary.proteinConsumedG / (summary.proteinGoalG || 1)) * 100))
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Carbs */}
+                <div className="p-2 rounded-xl bg-zinc-950/60 border border-white/[0.05]">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="text-zinc-400 font-medium">Carbs</span>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {summary.carbsGoalG}g
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1 font-mono">
+                    <span className="text-sm font-bold text-white">
+                      {summary.carbsConsumedG !== undefined ? `${Math.round(summary.carbsConsumedG)}` : "—"}
+                    </span>
+                    {summary.carbsConsumedG !== undefined && <span className="text-[10px] text-zinc-400">g</span>}
+                  </div>
+                  <div className="mt-1.5 h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-sky-400 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${
+                          summary.carbsConsumedG !== undefined && (summary.carbsGoalG || 0) > 0
+                            ? Math.min(100, Math.round((summary.carbsConsumedG / (summary.carbsGoalG || 1)) * 100))
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Fat */}
+                <div className="p-2 rounded-xl bg-zinc-950/60 border border-white/[0.05]">
+                  <div className="flex items-center justify-between text-[11px] mb-1">
+                    <span className="text-zinc-400 font-medium">Fat</span>
+                    <span className="text-[10px] font-mono text-zinc-500">
+                      {summary.fatGoalG}g
+                    </span>
+                  </div>
+                  <div className="flex items-baseline gap-1 font-mono">
+                    <span className="text-sm font-bold text-white">
+                      {summary.fatConsumedG !== undefined ? `${Math.round(summary.fatConsumedG)}` : "—"}
+                    </span>
+                    {summary.fatConsumedG !== undefined && <span className="text-[10px] text-zinc-400">g</span>}
+                  </div>
+                  <div className="mt-1.5 h-1 w-full bg-white/[0.06] rounded-full overflow-hidden">
+                    <div
+                      className="h-full bg-rose-400 rounded-full transition-all duration-300"
+                      style={{
+                        width: `${
+                          summary.fatConsumedG !== undefined && (summary.fatGoalG || 0) > 0
+                            ? Math.min(100, Math.round((summary.fatConsumedG / (summary.fatGoalG || 1)) * 100))
+                            : 0
+                        }%`,
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Daily Food Log Entries List */}
+            <div className="mt-3 space-y-2">
+              {summary.nutritionEntries.length === 0 && summary.caloriesConsumed === 0 && (
+                <p className="text-xs text-zinc-500 italic">No food logged on this date.</p>
+              )}
+
+              {summary.nutritionEntries.length === 0 && summary.caloriesConsumed > 0 && (
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs flex items-center justify-between">
+                  <div>
+                    <span className="font-semibold text-white">Legacy Calorie Record</span>
+                    <p className="text-[11px] text-zinc-400">Direct calorie intake logged without granular meal items</p>
+                  </div>
+                  <span className="font-mono font-bold text-amber-400">{summary.caloriesConsumed.toLocaleString()} kcal</span>
+                </div>
+              )}
+
+              {summary.nutritionEntries.map((entry) => (
+                <div
+                  key={entry.id}
+                  className="p-3 rounded-xl bg-white/[0.03] hover:bg-white/[0.05] border border-white/[0.08] text-xs flex items-center justify-between gap-2 transition-all"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-white text-xs truncate max-w-[180px] sm:max-w-[240px]">
+                        {entry.name}
+                      </span>
+                      {entry.time && (
+                        <span className="text-[10px] font-mono text-zinc-400 bg-white/[0.04] px-1.5 py-0.5 rounded">
+                          {entry.time}
+                        </span>
+                      )}
+                      <span className="font-mono font-bold text-amber-400">
+                        {entry.calories.toLocaleString()} kcal
+                      </span>
+                    </div>
+
+                    {/* Macro details row if any macro is defined */}
+                    {(entry.proteinG !== undefined || entry.carbsG !== undefined || entry.fatG !== undefined) && (
+                      <div className="flex items-center gap-2 text-[11px] font-mono text-zinc-400 mt-1">
+                        {entry.proteinG !== undefined && (
+                          <span className="text-emerald-400/90 font-medium">P: {entry.proteinG}g</span>
+                        )}
+                        {entry.carbsG !== undefined && (
+                          <span className="text-sky-400/90 font-medium">C: {entry.carbsG}g</span>
+                        )}
+                        {entry.fatG !== undefined && (
+                          <span className="text-rose-400/90 font-medium">F: {entry.fatG}g</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => {
+                        const target = selectedDate;
+                        closeDayDetail();
+                        openQuickLog("calories", entry, target);
+                      }}
+                      aria-label="Edit food entry"
+                      className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deleteNutritionEntry(entry.id)}
+                      aria-label="Delete food entry"
+                      className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Day totals footer row if entries exist */}
+              {summary.nutritionEntries.length > 0 && (
+                <div className="px-3 py-2 rounded-xl bg-zinc-950/80 border border-white/[0.05] flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                  <span className="font-semibold text-zinc-300">Daily Totals</span>
+                  <div className="flex items-center gap-2 font-bold text-white">
+                    <span>{summary.caloriesConsumed.toLocaleString()} kcal</span>
+                    {summary.proteinConsumedG !== undefined && (
+                      <span className="text-emerald-400">• {Math.round(summary.proteinConsumedG)}g P</span>
+                    )}
+                    {summary.carbsConsumedG !== undefined && (
+                      <span className="text-sky-400">• {Math.round(summary.carbsConsumedG)}g C</span>
+                    )}
+                    {summary.fatConsumedG !== undefined && (
+                      <span className="text-rose-400">• {Math.round(summary.fatConsumedG)}g F</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
@@ -214,8 +443,9 @@ function DayDetailModalContent() {
               </h3>
               <button
                 onClick={() => {
+                  const target = selectedDate;
                   closeDayDetail();
-                  openQuickLog("workout");
+                  openQuickLog("workout", null, target);
                 }}
                 className="text-xs font-bold text-emerald-400 hover:text-emerald-300 flex items-center gap-1 cursor-pointer"
               >
@@ -452,8 +682,9 @@ function DayDetailModalContent() {
           </span>
           <button
             onClick={() => {
+              const target = selectedDate;
               closeDayDetail();
-              openQuickLog("steps");
+              openQuickLog("steps", null, target);
             }}
             className="min-h-[44px] flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-zinc-950 text-xs font-bold rounded-2xl shadow-lg shadow-emerald-500/20 transition-all cursor-pointer active:scale-95"
           >

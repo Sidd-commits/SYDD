@@ -24,28 +24,26 @@ export function HistoryView() {
   const [filterMode, setFilterMode] = useState<"all" | "active">("all");
   const [searchDate, setSearchDate] = useState("");
 
-  // Collect all distinct recorded dates
-  const recordedDatesSet = new Set<ISODate>();
-  appData.dailyRecords.forEach((r) => recordedDatesSet.add(r.date));
-  appData.workouts.forEach((w) => recordedDatesSet.add(w.date));
-  appData.habitCompletions.forEach((c) => {
-    if (c.completed) recordedDatesSet.add(c.date);
-  });
+  const sortedDates = React.useMemo(() => {
+    const datesSet = new Set<ISODate>();
+    appData.dailyRecords.forEach((r) => datesSet.add(r.date));
+    appData.workouts.forEach((w) => datesSet.add(w.date));
+    appData.habitCompletions.forEach((c) => {
+      if (c.completed) datesSet.add(c.date);
+    });
+    datesSet.add(today);
 
-  recordedDatesSet.add(today);
+    return Array.from(datesSet)
+      .filter((d) => d <= today)
+      .sort((a, b) => b.localeCompare(a));
+  }, [appData.dailyRecords, appData.workouts, appData.habitCompletions, today]);
 
-  const sortedDates = Array.from(recordedDatesSet)
-    .filter((d) => d <= today)
-    .sort((a, b) => b.localeCompare(a));
-
-  const filteredDates = sortedDates.filter((date) => {
-    if (searchDate && !date.includes(searchDate)) return false;
-    if (filterMode === "active") {
-      const summary = calculateDaySummary(appData, date);
-      return summary.activeDay;
-    }
-    return true;
-  });
+  const daysWithSummary = React.useMemo(() => {
+    return sortedDates
+      .filter((date) => !searchDate || date.includes(searchDate))
+      .map((date) => ({ date, summary: calculateDaySummary(appData, date) }))
+      .filter(({ summary }) => filterMode === "all" || summary.activeDay);
+  }, [sortedDates, searchDate, filterMode, appData]);
 
   return (
     <div className="space-y-6 animate-fade-in pb-20 md:pb-12">
@@ -149,7 +147,7 @@ export function HistoryView() {
           </div>
 
           {/* Days List */}
-          {filteredDates.length === 0 ? (
+          {daysWithSummary.length === 0 ? (
             <div className="text-center py-12 glass-card rounded-xl p-6 border-dashed border-white/[0.08]">
               <Calendar className="w-8 h-8 text-zinc-500 mx-auto mb-2" />
               <h3 className="text-sm font-semibold text-zinc-300">
@@ -161,8 +159,7 @@ export function HistoryView() {
             </div>
           ) : (
             <div className="space-y-2">
-              {filteredDates.map((date) => {
-                const summary = calculateDaySummary(appData, date);
+              {daysWithSummary.map(({ date, summary }) => {
                 const isCurrentToday = date === today;
 
                 return (

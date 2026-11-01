@@ -39,8 +39,8 @@ test("exportCSV returns formatted CSV with headers", () => {
   });
 
   const csv = StorageService.exportCSV(data);
-  assert.ok(csv.startsWith("Date,Steps,CaloriesConsumed_kcal,Water_ml,Workout_minutes,Habits_completed,Notes"));
-  assert.ok(csv.includes("2026-10-27,8500,2100,2500"));
+  assert.ok(csv.startsWith("Date,Steps,CaloriesConsumed_kcal,Protein_g,Carbs_g,Fat_g,Water_ml,Workout_minutes,Habits_completed,Notes"));
+  assert.ok(csv.includes("2026-10-27,8500,2100,,,,2500"));
 });
 
 test("importJSON validates and imports correctly", () => {
@@ -114,4 +114,109 @@ test("exportCSV neutralizes formula injection triggers in notes", () => {
   const csv = StorageService.exportCSV(data);
   // Verify leading dangerous formula char '=' is prepended with single apostrophe "'"
   assert.ok(csv.includes("\"'=cmd|'/C calc'!A0\""));
+});
+
+test("validateAndMigrateData validates nutritionEntries and sanitizes negative values", () => {
+  const rawData = {
+    nutritionEntries: [
+      {
+        id: "nutr-1",
+        date: "2026-10-28",
+        name: "Protein Shake",
+        calories: 300,
+        proteinG: 40,
+        carbsG: 10,
+        fatG: 3,
+      },
+      {
+        id: "nutr-2",
+        date: "2026-10-28",
+        name: "Snack with negative values",
+        calories: -50,
+        proteinG: -10,
+        carbsG: 15,
+      },
+    ],
+  };
+
+  const migrated = validateAndMigrateData(rawData);
+  assert.strictEqual(migrated.nutritionEntries.length, 2);
+  assert.strictEqual(migrated.nutritionEntries[0].name, "Protein Shake");
+  assert.strictEqual(migrated.nutritionEntries[0].calories, 300);
+  assert.strictEqual(migrated.nutritionEntries[0].proteinG, 40);
+  assert.strictEqual(migrated.nutritionEntries[0].fatG, 3);
+
+  // Negative calories clamped to 0, negative protein clamped to 0, missing fat is undefined
+  assert.strictEqual(migrated.nutritionEntries[1].calories, 0);
+  assert.strictEqual(migrated.nutritionEntries[1].proteinG, 0);
+  assert.strictEqual(migrated.nutritionEntries[1].carbsG, 15);
+  assert.strictEqual(migrated.nutritionEntries[1].fatG, undefined);
+});
+
+test("exportCSV correctly calculates totals from nutritionEntries", () => {
+  const data = getDefaultAppData();
+  data.nutritionEntries.push(
+    {
+      id: "n-1",
+      date: "2026-10-29",
+      name: "Breakfast",
+      calories: 500,
+      proteinG: 30,
+      carbsG: 50,
+      fatG: 15,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    },
+    {
+      id: "n-2",
+      date: "2026-10-29",
+      name: "Lunch",
+      calories: 700,
+      proteinG: 45,
+      carbsG: 60,
+      fatG: 20,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    }
+  );
+
+  const csv = StorageService.exportCSV(data);
+  // Total calories 1200, P: 75, C: 110, F: 35
+  assert.ok(csv.includes("2026-10-29,,1200,75,110,35"));
+});
+
+test("validateAndMigrateData preserves and validates workoutRoutines", () => {
+  const rawData = {
+    workoutRoutines: [
+      {
+        id: "custom-routine-1",
+        name: "Custom Upper Hypertrophy",
+        type: "strength",
+        durationMinutes: 55,
+        exercises: [
+          {
+            id: "ex-c1",
+            name: "Incline Bench Press",
+            sets: [
+              { id: "s-c1", setNumber: 1, reps: 10, weight: 60, weightUnit: "kg", completed: true },
+              { id: "s-c2", setNumber: 2, reps: 8, weight: 65, weightUnit: "kg", completed: true },
+            ],
+          },
+        ],
+      },
+    ],
+  };
+
+  const migrated = validateAndMigrateData(rawData);
+  assert.strictEqual(migrated.workoutRoutines.length, 1);
+  assert.strictEqual(migrated.workoutRoutines[0].id, "custom-routine-1");
+  assert.strictEqual(migrated.workoutRoutines[0].name, "Custom Upper Hypertrophy");
+  assert.strictEqual(migrated.workoutRoutines[0].exercises.length, 1);
+  assert.strictEqual(migrated.workoutRoutines[0].exercises[0].sets.length, 2);
+  assert.strictEqual(migrated.workoutRoutines[0].exercises[0].sets[0].weight, 60);
+
+  // Missing or empty routines should fall back to default curated routines
+  const fallbackMigrated = validateAndMigrateData({});
+  assert.ok(fallbackMigrated.workoutRoutines.length >= 3);
+  assert.ok(fallbackMigrated.workoutRoutines.some((r) => r.id === "routine-push"));
 });

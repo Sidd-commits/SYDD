@@ -319,6 +319,79 @@ test("calculatePersonalRecords extracts peak steps, maximum volume, and top exer
   assert.strictEqual(prs.exercisePRs[1].maxWeight, 90);
 });
 
+test("calculatePersonalRecords correctly normalizes units when comparing kg and lbs sets", () => {
+  const data = createMockData();
+
+  data.workouts.push(
+    {
+      id: "w-kg-1",
+      date: "2026-10-10",
+      type: "strength",
+      durationMinutes: 45,
+      exercises: [
+        {
+          id: "ex-1",
+          name: "Overhead Press",
+          sets: [
+            { id: "s-1", setNumber: 1, reps: 5, weight: 100, weightUnit: "kg", completed: true }, // 100 kg = 220.5 lbs
+          ],
+        },
+      ],
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "w-lbs-1",
+      date: "2026-10-15",
+      type: "strength",
+      durationMinutes: 45,
+      exercises: [
+        {
+          id: "ex-1",
+          name: "Overhead Press",
+          sets: [
+            // 120 lbs = 54.4 kg. Lower than 100 kg, so 100 kg should NOT be overwritten
+            { id: "s-2", setNumber: 1, reps: 5, weight: 120, weightUnit: "lbs", completed: true },
+          ],
+        },
+      ],
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  let prs = calculatePersonalRecords(data, "2026-10-28");
+  let ohpPR = prs.exercisePRs.find((pr) => pr.exerciseName === "Overhead Press");
+  assert.ok(ohpPR);
+  assert.strictEqual(ohpPR?.maxWeight, 100);
+  assert.strictEqual(ohpPR?.weightUnit, "kg");
+
+  // Now log 250 lbs = 113.4 kg, which exceeds 100 kg
+  data.workouts.push({
+    id: "w-lbs-2",
+    date: "2026-10-20",
+    type: "strength",
+    durationMinutes: 45,
+    exercises: [
+      {
+        id: "ex-1",
+        name: "Overhead Press",
+        sets: [
+          { id: "s-3", setNumber: 1, reps: 5, weight: 250, weightUnit: "lbs", completed: true },
+        ],
+      },
+    ],
+    createdAt: "",
+    updatedAt: "",
+  });
+
+  prs = calculatePersonalRecords(data, "2026-10-28");
+  ohpPR = prs.exercisePRs.find((pr) => pr.exerciseName === "Overhead Press");
+  assert.ok(ohpPR);
+  assert.strictEqual(ohpPR?.maxWeight, 250);
+  assert.strictEqual(ohpPR?.weightUnit, "lbs");
+});
+
 test("calculateMonthlySummary computes month-to-date totals without inventing data", () => {
   const data = createMockData();
   const refDate = "2026-10-10";
@@ -333,4 +406,95 @@ test("calculateMonthlySummary computes month-to-date totals without inventing da
   assert.strictEqual(monthly.activeDays, 2);
   assert.strictEqual(monthly.totalSteps, 18000);
   assert.strictEqual(monthly.consistencyPercent, 20); // 2/10 = 20%
+});
+
+test("calculateDaySummary computes daily calories and macro totals from nutritionEntries", () => {
+  const data = createMockData();
+  const date = "2026-10-28";
+
+  data.nutritionEntries.push(
+    {
+      id: "meal-1",
+      date,
+      name: "Oatmeal with whey",
+      calories: 450,
+      proteinG: 35,
+      carbsG: 55,
+      fatG: 8,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "meal-2",
+      date,
+      name: "Salmon and rice",
+      calories: 650,
+      proteinG: 45,
+      carbsG: 65,
+      fatG: 18,
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  const summary = calculateDaySummary(data, date);
+  assert.strictEqual(summary.caloriesConsumed, 1100);
+  assert.strictEqual(summary.proteinConsumedG, 80);
+  assert.strictEqual(summary.carbsConsumedG, 120);
+  assert.strictEqual(summary.fatConsumedG, 26);
+  assert.strictEqual(summary.nutritionEntries.length, 2);
+  assert.strictEqual(summary.hasData, true);
+});
+
+test("calculateDaySummary preserves legacy calorie records and returns undefined for unknown macros", () => {
+  const data = createMockData();
+  const date = "2026-10-27";
+
+  // Legacy record with only caloriesConsumedKcal
+  data.dailyRecords.push({
+    date,
+    caloriesConsumedKcal: 2300,
+    updatedAt: "",
+  });
+
+  const summary = calculateDaySummary(data, date);
+  assert.strictEqual(summary.caloriesConsumed, 2300);
+  // Macros must not be presented as 0g or known values
+  assert.strictEqual(summary.proteinConsumedG, undefined);
+  assert.strictEqual(summary.carbsConsumedG, undefined);
+  assert.strictEqual(summary.fatConsumedG, undefined);
+  assert.strictEqual(summary.nutritionEntries.length, 0);
+  assert.strictEqual(summary.hasData, true);
+});
+
+test("calculateDaySummary respects partial macros without calculation errors", () => {
+  const data = createMockData();
+  const date = "2026-10-29";
+
+  data.nutritionEntries.push(
+    {
+      id: "meal-quick",
+      date,
+      name: "Quick Snack (calories only)",
+      calories: 200,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "meal-shake",
+      date,
+      name: "Pure Isolate Shake",
+      calories: 120,
+      proteinG: 25,
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  const summary = calculateDaySummary(data, date);
+  assert.strictEqual(summary.caloriesConsumed, 320);
+  assert.strictEqual(summary.proteinConsumedG, 25);
+  // Carbs and fat were never specified, should remain undefined
+  assert.strictEqual(summary.carbsConsumedG, undefined);
+  assert.strictEqual(summary.fatConsumedG, undefined);
 });
