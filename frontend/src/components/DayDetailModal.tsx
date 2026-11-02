@@ -38,6 +38,7 @@ function DayDetailModalContent() {
     toggleHabit,
     deleteWorkout,
     deleteNutritionEntry,
+    clearDailyCalories,
     saveDailyNotes,
     today,
   } = useApp();
@@ -346,12 +347,34 @@ function DayDetailModalContent() {
               )}
 
               {summary.nutritionEntries.length === 0 && summary.caloriesConsumed > 0 && (
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs flex items-center justify-between">
+                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/[0.08] text-xs flex items-center justify-between gap-2">
                   <div>
                     <span className="font-semibold text-white">Legacy Calorie Record</span>
                     <p className="text-[11px] text-zinc-400">Direct calorie intake logged without granular meal items</p>
                   </div>
-                  <span className="font-mono font-bold text-amber-400">{summary.caloriesConsumed.toLocaleString()} kcal</span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono font-bold text-amber-400">{summary.caloriesConsumed.toLocaleString()} kcal</span>
+                    <button
+                      onClick={() => {
+                        const target = selectedDate;
+                        closeDayDetail();
+                        openQuickLog("calories", null, target);
+                      }}
+                      aria-label="Edit legacy calorie record"
+                      className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer"
+                      title="Edit or add items"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                    <button
+                      onClick={() => clearDailyCalories(selectedDate)}
+                      aria-label="Clear legacy calorie record"
+                      className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-lg hover:bg-white/[0.05] transition-colors cursor-pointer"
+                      title="Clear calories"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                 </div>
               )}
 

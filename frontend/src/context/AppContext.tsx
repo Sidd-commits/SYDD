@@ -73,6 +73,7 @@ type AppContextType = {
   }) => void;
   updateNutritionEntry: (entry: NutritionEntry) => void;
   deleteNutritionEntry: (id: string) => void;
+  clearDailyCalories: (date?: ISODate) => void;
   logWater: (amountMl: number, mode?: "set" | "add", date?: ISODate) => void;
   saveDailyNotes: (notes: string, date?: ISODate) => void;
   addWorkout: (
@@ -630,6 +631,30 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     showToast("Meal removed", "info");
   };
 
+  const clearDailyCalories = (date: ISODate = selectedDate) => {
+    updateData((prev) => {
+      const existingRecordIdx = prev.dailyRecords.findIndex((r) => r.date === date);
+      const records = [...prev.dailyRecords];
+      if (existingRecordIdx >= 0) {
+        records[existingRecordIdx] = {
+          ...records[existingRecordIdx],
+          caloriesConsumedKcal: undefined,
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      const nextNutritionEntries = (prev.nutritionEntries || []).filter((e) => e.date !== date);
+
+      return {
+        ...prev,
+        nutritionEntries: nextNutritionEntries,
+        dailyRecords: records,
+      };
+    });
+
+    showToast(`Calories cleared for ${date}`, "info");
+  };
+
   const logWater = (amountMl: number, mode: "set" | "add" = "set", date: ISODate = selectedDate) => {
     let finalAmount = Math.max(0, Math.floor(amountMl));
     updateData((prev) => {
@@ -974,6 +999,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         addNutritionEntry,
         updateNutritionEntry,
         deleteNutritionEntry,
+        clearDailyCalories,
         logWater,
         saveDailyNotes,
         addWorkout,

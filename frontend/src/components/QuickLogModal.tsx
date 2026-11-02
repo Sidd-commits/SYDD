@@ -14,6 +14,9 @@ import {
   Check,
   Calendar,
   Sparkles,
+  Utensils,
+  Edit3,
+  Trash2,
 } from "lucide-react";
 
 export function QuickLogModal() {
@@ -46,6 +49,8 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
     logSteps,
     addNutritionEntry,
     updateNutritionEntry,
+    deleteNutritionEntry,
+    clearDailyCalories,
     logWater,
     addWorkout,
     appData,
@@ -61,6 +66,7 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
   const [stepsInput, setStepsInput] = useState(initialRecord?.steps !== undefined ? String(initialRecord.steps) : "");
   
   // Nutrition & Meal state
+  const [currentEditingEntry, setCurrentEditingEntry] = useState(editingNutritionEntry || null);
   const [mealName, setMealName] = useState(editingNutritionEntry?.name || "");
   const [mealCalories, setMealCalories] = useState(
     editingNutritionEntry?.calories !== undefined ? String(editingNutritionEntry.calories) : ""
@@ -82,6 +88,32 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
   const [workoutNotes, setWorkoutNotes] = useState("");
   const [workoutExercises, setWorkoutExercises] = useState<WorkoutExercise[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+
+  const loggedMealsForDate = (appData.nutritionEntries || []).filter((e) => e.date === logDate);
+  const dateRecord = appData.dailyRecords.find((r) => r.date === logDate);
+  const hasLegacyCalories = loggedMealsForDate.length === 0 && (dateRecord?.caloriesConsumedKcal ?? 0) > 0;
+
+  const handleSelectEntryToEdit = (entry: (typeof loggedMealsForDate)[0]) => {
+    setCurrentEditingEntry(entry);
+    setMealName(entry.name);
+    setMealCalories(String(entry.calories));
+    setMealProtein(entry.proteinG !== undefined ? String(entry.proteinG) : "");
+    setMealCarbs(entry.carbsG !== undefined ? String(entry.carbsG) : "");
+    setMealFat(entry.fatG !== undefined ? String(entry.fatG) : "");
+    setMealTime(entry.time || "");
+    setErrorMsg("");
+  };
+
+  const handleCancelEdit = () => {
+    setCurrentEditingEntry(null);
+    setMealName("");
+    setMealCalories("");
+    setMealProtein("");
+    setMealCarbs("");
+    setMealFat("");
+    setMealTime("");
+    setErrorMsg("");
+  };
 
   // Extract unique recently logged meals for quick pre-fill
   const recentFoods = React.useMemo(() => {
@@ -180,9 +212,9 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
 
       const cleanName = mealName.trim() || "Meal";
 
-      if (editingNutritionEntry) {
+      if (currentEditingEntry) {
         updateNutritionEntry({
-          ...editingNutritionEntry,
+          ...currentEditingEntry,
           date: logDate,
           name: cleanName,
           calories: cals,
@@ -504,8 +536,152 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
 
           {activeMetric === "calories" && (
             <div className="space-y-3.5">
+              {/* Already Logged Meals on this date */}
+              {loggedMealsForDate.length > 0 && (
+                <div className="p-3 rounded-xl bg-zinc-950/80 border border-white/[0.08] space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-zinc-300">
+                      <Utensils className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Logged Meals on this Date ({loggedMealsForDate.length})</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-xs font-bold text-amber-400">
+                        Total: {loggedMealsForDate.reduce((s, e) => s + e.calories, 0).toLocaleString()} kcal
+                      </span>
+                      {loggedMealsForDate.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            clearDailyCalories(logDate);
+                            handleCancelEdit();
+                          }}
+                          className="text-[10px] text-rose-400 hover:text-rose-300 transition-colors cursor-pointer underline"
+                        >
+                          Clear All
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto custom-scrollbar pr-1">
+                    {loggedMealsForDate.map((entry) => {
+                      const isBeingEdited = currentEditingEntry?.id === entry.id;
+                      return (
+                        <div
+                          key={entry.id}
+                          className={`p-2.5 rounded-lg border text-xs flex items-center justify-between gap-2 transition-all ${
+                            isBeingEdited
+                              ? "bg-amber-500/15 border-amber-500/50"
+                              : "bg-white/[0.03] hover:bg-white/[0.06] border-white/[0.06]"
+                          }`}
+                        >
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-semibold text-white truncate max-w-[170px]">{entry.name}</span>
+                              <span className="font-mono font-bold text-amber-400">{entry.calories.toLocaleString()} kcal</span>
+                              {entry.time && (
+                                <span className="text-[10px] text-zinc-500 font-mono">({entry.time})</span>
+                              )}
+                            </div>
+                            {(entry.proteinG !== undefined || entry.carbsG !== undefined || entry.fatG !== undefined) && (
+                              <div className="text-[10px] font-mono text-zinc-400 mt-0.5 flex items-center gap-2">
+                                {entry.proteinG !== undefined && <span className="text-emerald-400">P: {entry.proteinG}g</span>}
+                                {entry.carbsG !== undefined && <span className="text-sky-400">C: {entry.carbsG}g</span>}
+                                {entry.fatG !== undefined && <span className="text-rose-400">F: {entry.fatG}g</span>}
+                              </div>
+                            )}
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <button
+                              type="button"
+                              onClick={() => handleSelectEntryToEdit(entry)}
+                              title="Edit this meal"
+                              className={`p-1.5 rounded-md transition-colors cursor-pointer ${
+                                isBeingEdited
+                                  ? "bg-amber-500 text-zinc-950 font-bold"
+                                  : "text-zinc-400 hover:text-amber-300 hover:bg-white/[0.08]"
+                              }`}
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                deleteNutritionEntry(entry.id);
+                                if (currentEditingEntry?.id === entry.id) {
+                                  handleCancelEdit();
+                                }
+                              }}
+                              title="Delete this meal"
+                              className="p-1.5 text-zinc-500 hover:text-rose-400 rounded-md hover:bg-white/[0.08] transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* Legacy Calorie Record banner if present */}
+              {hasLegacyCalories && (
+                <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-xs flex items-center justify-between gap-2">
+                  <div>
+                    <span className="font-semibold text-white">Legacy Calorie Record</span>
+                    <p className="text-[11px] text-amber-300 font-mono font-bold">
+                      {dateRecord?.caloriesConsumedKcal?.toLocaleString()} kcal
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setMealName("Daily Calorie Intake");
+                        setMealCalories(String(dateRecord?.caloriesConsumedKcal || ""));
+                      }}
+                      className="px-2.5 py-1 text-xs font-semibold text-amber-300 bg-amber-500/20 hover:bg-amber-500/30 rounded-md border border-amber-500/30 cursor-pointer"
+                    >
+                      Convert to Meal
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => clearDailyCalories(logDate)}
+                      className="px-2.5 py-1 text-xs font-semibold text-rose-300 bg-rose-500/20 hover:bg-rose-500/30 rounded-md border border-rose-500/30 cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Editing Banner or Add Header */}
+              {currentEditingEntry ? (
+                <div className="flex items-center justify-between p-2.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-xs">
+                  <div className="flex items-center gap-1.5 text-amber-300 font-semibold truncate">
+                    <Edit3 className="w-3.5 h-3.5 shrink-0" />
+                    <span className="truncate">Editing: {currentEditingEntry.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="text-[11px] text-zinc-300 hover:text-white underline cursor-pointer shrink-0 ml-2"
+                  >
+                    Cancel Edit
+                  </button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-zinc-300 uppercase tracking-wide">
+                    {loggedMealsForDate.length > 0 ? "Add Another Food / Meal" : "Food or Meal Details"}
+                  </span>
+                </div>
+              )}
+
               {/* Recent meals quick-select row */}
-              {!editingNutritionEntry && recentFoods.length > 0 && (
+              {!currentEditingEntry && recentFoods.length > 0 && (
                 <div>
                   <div className="flex items-center gap-1.5 mb-1.5 text-[11px] text-zinc-400 font-medium">
                     <Sparkles className="w-3 h-3 text-amber-400" />
@@ -687,7 +863,7 @@ function QuickLogModalContent({ initialDate }: { initialDate: string }) {
               className="px-4 py-2 bg-emerald-500 hover:bg-emerald-400 text-zinc-950 text-xs font-semibold rounded-lg shadow-xs transition-all cursor-pointer flex items-center gap-1.5 active:scale-95"
             >
               <Check className="w-3.5 h-3.5 stroke-[2.5]" />
-              <span>Save Record</span>
+              <span>{currentEditingEntry ? "Update Meal" : "Save Record"}</span>
             </button>
           </div>
         </form>
