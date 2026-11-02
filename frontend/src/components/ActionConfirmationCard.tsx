@@ -163,3 +163,4 @@ function WorkoutProposalDetails({ data }: { data: ProposedWorkoutData }) {
     </div>
   );
 }
+

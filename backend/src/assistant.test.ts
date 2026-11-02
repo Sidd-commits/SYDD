@@ -149,3 +149,4 @@ test("AssistantController rejects invalid payloads", async () => {
     /Invalid request: payload.messages must be a non-empty array/
   );
 });
+

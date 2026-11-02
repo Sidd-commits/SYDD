@@ -18,3 +18,4 @@ export const AssistantController = {
     return await AssistantService.processChat(payload);
   },
 };
+

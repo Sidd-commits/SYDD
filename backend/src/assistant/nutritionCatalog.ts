@@ -313,3 +313,4 @@ export function lookupFoodCatalog(foodName: string): FoodItemReference | undefin
   }
   return undefined;
 }
+

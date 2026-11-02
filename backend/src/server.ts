@@ -4,6 +4,13 @@ import { BackendStorageService } from "./services/storageService.js";
 import { AssistantController } from "./assistant/assistantController.js";
 import { SyncPayload, DeltaSyncPayload } from "./types/index.js";
 
+// Load environment variables from .env if present (native Node.js 20+)
+try {
+  process.loadEnvFile();
+} catch {
+  // .env file is optional in development/test environments
+}
+
 const PORT = parseInt(process.env.PORT || "5000", 10);
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB limit for JSON sync
 

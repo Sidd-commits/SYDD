@@ -5,16 +5,21 @@ import { NUTRITION_CATALOG } from "../nutritionCatalog.js";
 export class GeminiProvider implements AiProvider {
   public readonly id = "gemini";
   public readonly name = "Google Gemini (gemini-2.5-flash)";
-  private readonly apiKey: string;
+  private readonly configuredKey: string;
   private readonly primaryModel = "gemini-2.5-flash";
   private readonly fallbackModel = "gemini-1.5-flash";
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.GEMINI_API_KEY || process.env.AI_API_KEY || "";
+    this.configuredKey = apiKey || "";
+  }
+
+  private getApiKey(): string {
+    return this.configuredKey || process.env.GEMINI_API_KEY || process.env.AI_API_KEY || "";
   }
 
   public isAvailable(): boolean {
-    return Boolean(this.apiKey && this.apiKey.trim().length > 10);
+    const key = this.getApiKey();
+    return Boolean(key && key.trim().length > 10);
   }
 
   public async chat(request: AssistantChatRequest): Promise<AssistantChatResponse> {
@@ -39,7 +44,8 @@ export class GeminiProvider implements AiProvider {
     systemInstruction: string,
     contents: Array<{ role: string; parts: Array<{ text: string }> }>
   ): Promise<AssistantChatResponse> {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${this.apiKey}`;
+    const key = this.getApiKey();
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`;
 
     const requestBody = {
       systemInstruction: {
@@ -160,3 +166,4 @@ ${catalogSummary}
     return formatted;
   }
 }
+

@@ -6,3 +6,4 @@ export interface AiProvider {
   isAvailable(): boolean;
   chat(request: AssistantChatRequest): Promise<AssistantChatResponse>;
 }
+
