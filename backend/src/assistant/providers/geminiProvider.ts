@@ -4,10 +4,13 @@ import { NUTRITION_CATALOG } from "../nutritionCatalog.js";
 
 export class GeminiProvider implements AiProvider {
   public readonly id = "gemini";
-  public readonly name = "Google Gemini (gemini-2.5-flash)";
+  public readonly name = "Google Gemini (gemini-3.5-flash-lite)";
   private readonly configuredKey: string;
-  private readonly primaryModel = "gemini-2.5-flash";
-  private readonly fallbackModel = "gemini-1.5-flash";
+  private readonly candidateModels = [
+    "gemini-3.5-flash-lite",
+    "gemini-3.5-flash",
+    "gemini-flash-lite-latest",
+  ];
 
   constructor(apiKey?: string) {
     this.configuredKey = apiKey || "";
@@ -30,13 +33,17 @@ export class GeminiProvider implements AiProvider {
     const systemInstruction = this.buildSystemPrompt(request);
     const contents = this.formatMessagesForGemini(request);
 
-    // Attempt primary model first, fallback to 1.5-flash if needed
-    try {
-      return await this.callGeminiApi(this.primaryModel, systemInstruction, contents);
-    } catch (err: unknown) {
-      console.warn(`[GeminiProvider] Primary model ${this.primaryModel} failed, trying fallback:`, (err as Error).message);
-      return await this.callGeminiApi(this.fallbackModel, systemInstruction, contents);
+    let lastError: Error | null = null;
+    for (const model of this.candidateModels) {
+      try {
+        return await this.callGeminiApi(model, systemInstruction, contents);
+      } catch (err: unknown) {
+        lastError = err as Error;
+        console.warn(`[GeminiProvider] Model ${model} failed (${lastError.message}), attempting next candidate...`);
+      }
     }
+
+    throw lastError || new Error("All Gemini candidate models failed.");
   }
 
   private async callGeminiApi(
