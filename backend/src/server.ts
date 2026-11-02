@@ -1,6 +1,7 @@
 import http from "node:http";
 import { SyncController } from "./controllers/syncController.js";
 import { BackendStorageService } from "./services/storageService.js";
+import { AssistantController } from "./assistant/assistantController.js";
 import { SyncPayload, DeltaSyncPayload } from "./types/index.js";
 
 const PORT = parseInt(process.env.PORT || "5000", 10);
@@ -84,6 +85,59 @@ const server = http.createServer((req, res) => {
     const health = SyncController.getHealth();
     res.writeHead(200, { "Content-Type": "application/json" });
     res.end(JSON.stringify(health));
+    return;
+  }
+
+  // Assistant status
+  if (req.method === "GET" && url.pathname === "/api/assistant/status") {
+    const status = AssistantController.getStatus();
+    res.writeHead(200, { "Content-Type": "application/json" });
+    res.end(JSON.stringify(status));
+    return;
+  }
+
+  // Assistant Chat endpoint
+  if (req.method === "POST" && url.pathname === "/api/assistant/chat") {
+    const contentType = req.headers["content-type"] || "";
+    if (!contentType.includes("application/json")) {
+      res.writeHead(415, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Unsupported Media Type: Content-Type must be application/json" }));
+      return;
+    }
+
+    let isAborted = false;
+    let body = "";
+
+    req.on("data", (chunk) => {
+      if (isAborted) return;
+      body += chunk;
+      // 1MB safety limit for assistant chat payloads
+      if (body.length > 1024 * 1024) {
+        isAborted = true;
+        res.writeHead(413, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Chat payload exceeds 1MB limit." }));
+        req.destroy();
+      }
+    });
+
+    req.on("error", (err) => {
+      if (isAborted || res.writableEnded) return;
+      res.writeHead(400, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Stream read error: " + err.message }));
+    });
+
+    req.on("end", async () => {
+      if (isAborted || res.writableEnded) return;
+      try {
+        const payload = JSON.parse(body);
+        const result = await AssistantController.handleChat(payload);
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(result));
+      } catch (err) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: (err as Error).message }));
+      }
+    });
     return;
   }
 

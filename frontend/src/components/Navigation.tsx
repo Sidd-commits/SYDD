@@ -3,7 +3,7 @@
 import React from "react";
 import { useApp } from "@/context/AppContext";
 import { ActiveTab } from "@/types";
-import { LayoutDashboard, CalendarDays, CheckSquare, Settings } from "lucide-react";
+import { LayoutDashboard, CalendarDays, CheckSquare, Sparkles, Settings } from "lucide-react";
 
 type NavItem = {
   id: ActiveTab;
@@ -15,6 +15,7 @@ const NAV_ITEMS: NavItem[] = [
   { id: "overview", label: "Overview", icon: LayoutDashboard },
   { id: "history", label: "History", icon: CalendarDays },
   { id: "habits", label: "Habits", icon: CheckSquare },
+  { id: "assistant", label: "Assistant", icon: Sparkles },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

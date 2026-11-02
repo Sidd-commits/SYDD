@@ -182,4 +182,52 @@ export type DaySummary = {
   record?: DailyRecord;
 };
 
-export type ActiveTab = "overview" | "history" | "habits" | "settings";
+export type ActiveTab = "overview" | "history" | "habits" | "assistant" | "settings";
+
+export type ProposedActionType = "add_nutrition" | "log_water" | "log_steps" | "add_workout";
+
+export interface ProposedNutritionData {
+  name: string;
+  calories: number;
+  proteinG?: number;
+  carbsG?: number;
+  fatG?: number;
+  date?: string;
+  time?: string;
+  isEstimate?: boolean;
+}
+
+export interface ProposedWaterData {
+  amountMl: number;
+  mode: "add" | "set";
+  date?: string;
+}
+
+export interface ProposedStepsData {
+  steps: number;
+  date?: string;
+}
+
+export interface ProposedWorkoutData {
+  type: WorkoutType;
+  durationMinutes: number;
+  notes?: string;
+  date?: string;
+}
+
+export interface ProposedAction {
+  id: string;
+  type: ProposedActionType;
+  title: string;
+  description: string;
+  data: ProposedNutritionData | ProposedWaterData | ProposedStepsData | ProposedWorkoutData;
+  status: "pending" | "confirmed" | "dismissed";
+}
+
+export interface ChatMessage {
+  id: string;
+  role: "user" | "assistant" | "system";
+  content: string;
+  proposedAction?: ProposedAction | null;
+  timestamp: string;
+}

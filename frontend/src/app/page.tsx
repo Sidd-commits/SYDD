@@ -11,6 +11,7 @@ import { RestTimer } from "@/components/RestTimer";
 import { OverviewView } from "@/components/views/OverviewView";
 import { HistoryView } from "@/components/views/HistoryView";
 import { HabitsView } from "@/components/views/HabitsView";
+import { AssistantView } from "@/components/views/AssistantView";
 import { SettingsView } from "@/components/views/SettingsView";
 
 function DashboardContent() {
@@ -25,6 +26,7 @@ function DashboardContent() {
       {activeTab === "overview" && <OverviewView />}
       {activeTab === "history" && <HistoryView />}
       {activeTab === "habits" && <HabitsView />}
+      {activeTab === "assistant" && <AssistantView />}
       {activeTab === "settings" && <SettingsView />}
     </>
   );
