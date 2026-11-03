@@ -31,12 +31,13 @@ export function HistoryView() {
     appData.habitCompletions.forEach((c) => {
       if (c.completed) datesSet.add(c.date);
     });
+    (appData.nutritionEntries || []).forEach((n) => datesSet.add(n.date));
     datesSet.add(today);
 
     return Array.from(datesSet)
       .filter((d) => d <= today)
       .sort((a, b) => b.localeCompare(a));
-  }, [appData.dailyRecords, appData.workouts, appData.habitCompletions, today]);
+  }, [appData.dailyRecords, appData.workouts, appData.habitCompletions, appData.nutritionEntries, today]);
 
   const daysWithSummary = React.useMemo(() => {
     return sortedDates

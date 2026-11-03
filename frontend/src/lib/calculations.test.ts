@@ -498,3 +498,72 @@ test("calculateDaySummary respects partial macros without calculation errors", (
   assert.strictEqual(summary.carbsConsumedG, undefined);
   assert.strictEqual(summary.fatConsumedG, undefined);
 });
+
+test("calculateDaySummary eliminates floating point imprecision in macro totals", () => {
+  const data = createMockData();
+  const date = "2026-10-30";
+
+  data.nutritionEntries.push(
+    {
+      id: "meal-1",
+      date,
+      name: "Meal 1",
+      calories: 300,
+      proteinG: 10.1,
+      carbsG: 20.1,
+      fatG: 5.1,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "meal-2",
+      date,
+      name: "Meal 2",
+      calories: 300,
+      proteinG: 20.2,
+      carbsG: 10.2,
+      fatG: 5.2,
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  const summary = calculateDaySummary(data, date);
+  // 10.1 + 20.2 in raw JS is 30.299999999999997, should be rounded to 30.3
+  assert.strictEqual(summary.proteinConsumedG, 30.3);
+  assert.strictEqual(summary.carbsConsumedG, 30.3);
+  assert.strictEqual(summary.fatConsumedG, 10.3);
+});
+
+test("calculatePersonalRecords respects referenceDate and ignores future workouts", () => {
+  const data = createMockData();
+  data.dailyRecords.push(
+    { date: "2026-10-20", steps: 10000, updatedAt: "" },
+    { date: "2026-11-01", steps: 25000, updatedAt: "" }
+  );
+  data.workouts.push(
+    {
+      id: "w-past",
+      date: "2026-10-20",
+      type: "strength",
+      durationMinutes: 45,
+      createdAt: "",
+      updatedAt: "",
+    },
+    {
+      id: "w-future",
+      date: "2026-11-01",
+      type: "strength",
+      durationMinutes: 120,
+      createdAt: "",
+      updatedAt: "",
+    }
+  );
+
+  // When filtered up to 2026-10-25, future 2026-11-01 records should not be counted
+  const prs = calculatePersonalRecords(data, "2026-10-25");
+  assert.strictEqual(prs.maxStepsDay.steps, 10000);
+  assert.strictEqual(prs.maxStepsDay.date, "2026-10-20");
+  assert.strictEqual(prs.maxWorkoutMinutes.minutes, 45);
+  assert.strictEqual(prs.maxWorkoutMinutes.date, "2026-10-20");
+});

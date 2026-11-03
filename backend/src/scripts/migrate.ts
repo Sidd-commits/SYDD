@@ -160,7 +160,8 @@ export function runMigration(
         for (const ex of w.exercises) {
           if (!ex || !ex.name) continue;
           report.recordsCount.workoutExercises++;
-          const exId = ex.id || `ex_${w.id}_${sortOrder}`;
+          const isGenericId = !ex.id || /^ex-\d+$/.test(ex.id);
+          const exId = isGenericId ? `ex_${w.id}_${sortOrder}` : ex.id;
           const exSlug = ex.exerciseId ? `'${ex.exerciseId.replace(/'/g, "''")}'` : "NULL";
           const exName = ex.name.replace(/'/g, "''");
           const exNotes = ex.notes ? `'${ex.notes.replace(/'/g, "''")}'` : "NULL";
@@ -174,7 +175,8 @@ export function runMigration(
           if (Array.isArray(ex.sets)) {
             for (const s of ex.sets) {
               report.recordsCount.workoutSets++;
-              const setId = s.id || `s_${exId}_${s.setNumber || 1}`;
+              const isGenericSetId = !s.id || /^set-\d+$/.test(s.id);
+              const setId = isGenericSetId ? `s_${exId}_${s.setNumber || 1}` : s.id;
               const setNum = Math.max(1, Number(s.setNumber) || 1);
               const reps = Math.max(0, Number(s.reps) || 0);
               const weight = typeof s.weight === "number" ? Math.max(0, s.weight) : "NULL";

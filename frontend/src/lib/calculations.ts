@@ -66,17 +66,17 @@ export function calculateDaySummary(data: AppData, date: ISODate): DaySummary {
 
   const hasProtein = dayNutrition.some((e) => typeof e.proteinG === "number");
   const proteinConsumedG = hasProtein
-    ? dayNutrition.reduce((sum, e) => sum + (e.proteinG || 0), 0)
+    ? Math.round(dayNutrition.reduce((sum, e) => sum + (e.proteinG || 0), 0) * 10) / 10
     : undefined;
 
   const hasCarbs = dayNutrition.some((e) => typeof e.carbsG === "number");
   const carbsConsumedG = hasCarbs
-    ? dayNutrition.reduce((sum, e) => sum + (e.carbsG || 0), 0)
+    ? Math.round(dayNutrition.reduce((sum, e) => sum + (e.carbsG || 0), 0) * 10) / 10
     : undefined;
 
   const hasFat = dayNutrition.some((e) => typeof e.fatG === "number");
   const fatConsumedG = hasFat
-    ? dayNutrition.reduce((sum, e) => sum + (e.fatG || 0), 0)
+    ? Math.round(dayNutrition.reduce((sum, e) => sum + (e.fatG || 0), 0) * 10) / 10
     : undefined;
 
   const waterMl = record?.waterMl ?? 0;
@@ -533,6 +533,7 @@ export function calculatePersonalRecords(data: AppData, referenceDate?: ISODate)
   let maxWaterDay = { waterMl: 0, date: undefined as ISODate | undefined };
 
   data.dailyRecords.forEach((r) => {
+    if (referenceDate && r.date > referenceDate) return;
     if (r.steps && r.steps > maxStepsDay.steps) {
       maxStepsDay = { steps: r.steps, date: r.date };
     }
@@ -555,6 +556,7 @@ export function calculatePersonalRecords(data: AppData, referenceDate?: ISODate)
   >();
 
   data.workouts.forEach((w) => {
+    if (referenceDate && w.date > referenceDate) return;
     if (w.durationMinutes > maxWorkoutMinutes.minutes) {
       maxWorkoutMinutes = { minutes: w.durationMinutes, date: w.date };
     }

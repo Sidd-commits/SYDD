@@ -87,7 +87,14 @@ export class GeminiProvider implements AiProvider {
         throw new Error("No candidate content received from Gemini.");
       }
 
-      const parsed = JSON.parse(rawText);
+      // Defensive cleanup: strip markdown code blocks if present
+      const cleanedText = rawText
+        .trim()
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/i, "")
+        .trim();
+
+      const parsed = JSON.parse(cleanedText);
       const proposedAction: ProposedAction | null = parsed.proposedAction
         ? {
             id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,

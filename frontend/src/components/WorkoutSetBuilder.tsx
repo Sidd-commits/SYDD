@@ -36,10 +36,8 @@ type WorkoutSetBuilderProps = {
   onSelectRoutine?: (routine: WorkoutRoutine) => void;
 };
 
-let idCounter = 0;
 function createId(prefix: string): string {
-  idCounter++;
-  return `${prefix}-${idCounter}`;
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`;
 }
 
 const MUSCLE_GROUPS: (MuscleGroup | "all")[] = [

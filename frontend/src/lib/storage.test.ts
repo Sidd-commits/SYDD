@@ -220,3 +220,19 @@ test("validateAndMigrateData preserves and validates workoutRoutines", () => {
   assert.ok(fallbackMigrated.workoutRoutines.length >= 3);
   assert.ok(fallbackMigrated.workoutRoutines.some((r) => r.id === "routine-push"));
 });
+
+test("validateAndMigrateData deduplicates habitCompletions for identical habitId and date", () => {
+  const rawData = {
+    habitCompletions: [
+      { habitId: "habit-water", date: "2026-10-28", completed: false, updatedAt: "2026-10-28T10:00:00Z" },
+      { habitId: "habit-water", date: "2026-10-28", completed: true, updatedAt: "2026-10-28T12:00:00Z" },
+      { habitId: "habit-stretch", date: "2026-10-28", completed: true, updatedAt: "2026-10-28T10:00:00Z" },
+    ],
+  };
+
+  const migrated = validateAndMigrateData(rawData);
+  assert.strictEqual(migrated.habitCompletions.length, 2);
+  const waterCompletion = migrated.habitCompletions.find((c) => c.habitId === "habit-water");
+  assert.strictEqual(waterCompletion?.completed, true);
+  assert.strictEqual(waterCompletion?.updatedAt, "2026-10-28T12:00:00Z");
+});

@@ -112,18 +112,28 @@ export function validateAndMigrateData(raw: unknown): AppData {
         }))
     : fallback.habits;
 
-  // Validate habit completions
-  const habitCompletions: HabitCompletion[] = Array.isArray(data.habitCompletions)
-    ? data.habitCompletions
-        .slice(0, 100000)
-        .filter((c): c is HabitCompletion => Boolean(c && typeof c.habitId === "string" && typeof c.date === "string"))
-        .map((c) => ({
-          habitId: c.habitId,
-          date: c.date,
-          completed: Boolean(c.completed),
-          updatedAt: c.updatedAt || new Date().toISOString(),
-        }))
-    : [];
+  // Validate habit completions with (habitId, date) uniqueness
+  const completionsMap = new Map<string, HabitCompletion>();
+  if (Array.isArray(data.habitCompletions)) {
+    data.habitCompletions
+      .slice(0, 100000)
+      .filter((c): c is HabitCompletion => Boolean(c && typeof c.habitId === "string" && typeof c.date === "string"))
+      .forEach((c) => {
+        const key = `${c.habitId}_${c.date}`;
+        const existing = completionsMap.get(key);
+        const curTime = Date.parse(c.updatedAt || "") || 0;
+        const exTime = existing ? (Date.parse(existing.updatedAt || "") || 0) : -1;
+        if (!existing || curTime >= exTime) {
+          completionsMap.set(key, {
+            habitId: c.habitId,
+            date: c.date,
+            completed: Boolean(c.completed),
+            updatedAt: c.updatedAt || new Date().toISOString(),
+          });
+        }
+      });
+  }
+  const habitCompletions: HabitCompletion[] = Array.from(completionsMap.values());
 
   // Validate nutrition entries
   const nutritionEntries: NutritionEntry[] = Array.isArray(data.nutritionEntries)

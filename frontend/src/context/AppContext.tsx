@@ -423,7 +423,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logSteps = (steps: number, date: ISODate = selectedDate) => {
-    const cleanSteps = Math.max(0, Math.floor(steps));
+    const cleanSteps = Math.max(0, Math.floor(Number(steps) || 0));
     updateData((prev) => {
       const existingIdx = prev.dailyRecords.findIndex((r) => r.date === date);
       const records = [...prev.dailyRecords];
@@ -446,7 +446,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logCalories = (calories: number, date: ISODate = selectedDate) => {
-    const cleanCalories = Math.max(0, Math.floor(calories));
+    const cleanCalories = Math.max(0, Math.floor(Number(calories) || 0));
     updateData((prev) => {
       const existingIdx = prev.dailyRecords.findIndex((r) => r.date === date);
       const records = [...prev.dailyRecords];
@@ -478,7 +478,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     time?: string;
   }) => {
     const entryDate = entry.date || selectedDate;
-    const cleanCalories = Math.max(0, Math.floor(entry.calories));
+    const cleanCalories = Math.max(0, Math.floor(Number(entry.calories) || 0));
     const cleanName = entry.name.trim() || "Meal";
     const cleanProtein =
       typeof entry.proteinG === "number" && !isNaN(entry.proteinG)
@@ -539,7 +539,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const updateNutritionEntry = (entry: NutritionEntry) => {
-    const cleanCalories = Math.max(0, Math.floor(entry.calories));
+    const cleanCalories = Math.max(0, Math.floor(Number(entry.calories) || 0));
     const cleanName = entry.name.trim() || "Meal";
     const cleanProtein =
       typeof entry.proteinG === "number" && !isNaN(entry.proteinG)
@@ -656,7 +656,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logWater = (amountMl: number, mode: "set" | "add" = "set", date: ISODate = selectedDate) => {
-    let finalAmount = Math.max(0, Math.floor(amountMl));
+    let finalAmount = Math.max(0, Math.floor(Number(amountMl) || 0));
     updateData((prev) => {
       const existingIdx = prev.dailyRecords.findIndex((r) => r.date === date);
       const records = [...prev.dailyRecords];
