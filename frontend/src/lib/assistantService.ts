@@ -2,7 +2,7 @@ import { AppData, ChatMessage, ISODate, ProposedAction } from "@/types";
 import { calculateStreaks } from "./calculations";
 
 const BACKEND_URL = (
-  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000"
+  process.env.NEXT_PUBLIC_BACKEND_URL || ""
 ).replace(/\/+$/, "");
 
 export interface AssistantChatResponse {
