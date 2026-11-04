@@ -2,6 +2,7 @@
   "name": "sydd-backend",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "SYDD Backend Service & Sync API",
   "main": "dist/server.js",
   "scripts": {

@@ -14,7 +14,7 @@ try {
 const PORT = parseInt(process.env.PORT || "5000", 10);
 const MAX_PAYLOAD_BYTES = 5 * 1024 * 1024; // 5MB limit for JSON sync
 
-// Allowed origins for CORS: localhost development and configurable FRONTEND_ORIGIN
+// Allowed origins for CORS: localhost development and configurable FRONTEND_ORIGIN / FRONTEND_URL / ALLOWED_ORIGINS
 const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:3000",
   "http://127.0.0.1:3000",
@@ -22,10 +22,15 @@ const DEFAULT_ALLOWED_ORIGINS = [
   "http://127.0.0.1:5000",
 ];
 
-const envAllowed = process.env.ALLOWED_ORIGINS
-  ? process.env.ALLOWED_ORIGINS.split(",").map((o) => o.trim())
-  : [];
-const ALLOWED_ORIGINS = new Set([...DEFAULT_ALLOWED_ORIGINS, ...envAllowed]);
+const customAllowed = [
+  ...(process.env.ALLOWED_ORIGINS ? process.env.ALLOWED_ORIGINS.split(",") : []),
+  process.env.FRONTEND_URL,
+  process.env.FRONTEND_ORIGIN,
+]
+  .filter((s): s is string => Boolean(s && s.trim()))
+  .map((o) => o.trim().replace(/\/+$/, ""));
+
+const ALLOWED_ORIGINS = new Set([...DEFAULT_ALLOWED_ORIGINS, ...customAllowed]);
 
 /**
  * Applies security headers to all HTTP responses.
@@ -48,11 +53,14 @@ const handleCors = (req: http.IncomingMessage, res: http.ServerResponse): boolea
     return true;
   }
 
+  const normalizedOrigin = origin.replace(/\/+$/, "");
+
   // Validate cross-origin against allowlist
-  if (ALLOWED_ORIGINS.has(origin)) {
+  if (ALLOWED_ORIGINS.has(normalizedOrigin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS, HEAD");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    res.setHeader("Access-Control-Max-Age", "86400");
     res.setHeader("Vary", "Origin");
     return true;
   }
@@ -88,10 +96,14 @@ const server = http.createServer((req, res) => {
   }
 
   // Health check
-  if (req.method === "GET" && (url.pathname === "/health" || url.pathname === "/api/health")) {
+  if ((req.method === "GET" || req.method === "HEAD") && (url.pathname === "/health" || url.pathname === "/api/health")) {
     const health = SyncController.getHealth();
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(health));
+    if (req.method === "HEAD") {
+      res.end();
+    } else {
+      res.end(JSON.stringify(health));
+    }
     return;
   }
 
@@ -261,3 +273,27 @@ BackendStorageService.init();
 server.listen(PORT, () => {
   console.log(`SYDD Backend Service listening on port ${PORT}`);
 });
+
+// Process-level safety and cloud lifecycle handling
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("[SYDD Backend] Unhandled Rejection at:", promise, "reason:", reason);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("[SYDD Backend] Uncaught Exception:", error);
+});
+
+const gracefulShutdown = (signal: string) => {
+  console.log(`[SYDD Backend] Received ${signal}. Closing HTTP server...`);
+  server.close(() => {
+    console.log("[SYDD Backend] HTTP server closed gracefully.");
+    process.exit(0);
+  });
+  setTimeout(() => {
+    console.error("[SYDD Backend] Graceful shutdown timed out, exiting.");
+    process.exit(1);
+  }, 10000).unref();
+};
+
+process.on("SIGTERM", () => gracefulShutdown("SIGTERM"));
+process.on("SIGINT", () => gracefulShutdown("SIGINT"));
