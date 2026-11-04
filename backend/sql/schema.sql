@@ -174,18 +174,19 @@ ALTER TABLE habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habit_completions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_routines ENABLE ROW LEVEL SECURITY;
 
--- Default policies: Permit access for authenticated users, service role, and anon
--- (Allows SYDD personal sync to function seamlessly with either anon key or service_role key)
-DROP POLICY IF EXISTS "Users can manage their own settings" ON user_settings;
-DROP POLICY IF EXISTS "Users can manage their own daily records" ON daily_records;
-DROP POLICY IF EXISTS "Users can manage their own workouts" ON workouts;
-DROP POLICY IF EXISTS "Users can manage their own exercises" ON workout_exercises;
-DROP POLICY IF EXISTS "Users can manage their own sets" ON workout_sets;
-DROP POLICY IF EXISTS "Users can manage their own nutrition" ON nutrition_entries;
-DROP POLICY IF EXISTS "Users can manage their own habits" ON habits;
-DROP POLICY IF EXISTS "Users can manage their own habit completions" ON habit_completions;
-DROP POLICY IF EXISTS "Users can manage their own routines" ON workout_routines;
+-- 3. PERMISSIVE POLICIES FOR SYDD API
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE daily_records ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workouts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workout_exercises ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workout_sets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE nutrition_entries ENABLE ROW LEVEL SECURITY;
+ALTER TABLE habits ENABLE ROW LEVEL SECURITY;
+ALTER TABLE habit_completions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE workout_routines ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "Allow sync on users" ON users FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow sync on user_settings" ON user_settings FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow sync on daily_records" ON daily_records FOR ALL USING (true) WITH CHECK (true);
 CREATE POLICY "Allow sync on workouts" ON workouts FOR ALL USING (true) WITH CHECK (true);
