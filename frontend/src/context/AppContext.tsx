@@ -291,9 +291,26 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
         if (!hasCurrent) {
           const idbData = await IDBStorage.loadAll();
-          if (idbData && mounted) {
+          const hasIdb =
+            idbData &&
+            ((idbData.dailyRecords && idbData.dailyRecords.length > 0) ||
+              (idbData.workouts && idbData.workouts.length > 0) ||
+              (idbData.nutritionEntries && idbData.nutritionEntries.length > 0));
+
+          if (hasIdb && mounted) {
             const validated = validateAndMigrateData(idbData);
             emitDataChange(validated);
+          } else if (mounted) {
+            // 3. Fresh installation or new domain with 0 records: seed from backup
+            try {
+              const backupRes = await SyncService.fetchLatestBackup();
+              if (backupRes.success && backupRes.data && mounted) {
+                const validated = validateAndMigrateData(backupRes.data);
+                emitDataChange(validated);
+              }
+            } catch {
+              // Ignore network failure on initial seed
+            }
           }
         }
       } catch (err) {
