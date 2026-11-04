@@ -174,32 +174,24 @@ ALTER TABLE habits ENABLE ROW LEVEL SECURITY;
 ALTER TABLE habit_completions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE workout_routines ENABLE ROW LEVEL SECURITY;
 
--- Default policies (allows users to access only their own rows via auth.uid())
--- These activate automatically when connected to Supabase Auth.
-DO $$
-BEGIN
-    IF EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'auth') THEN
-        CREATE POLICY "Users can manage their own settings" ON user_settings
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own daily records" ON daily_records
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own workouts" ON workouts
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own exercises" ON workout_exercises
-            FOR ALL USING (workout_id IN (SELECT id FROM workouts WHERE user_id = auth.uid()));
-        CREATE POLICY "Users can manage their own sets" ON workout_sets
-            FOR ALL USING (exercise_id IN (
-                SELECT we.id FROM workout_exercises we
-                JOIN workouts w ON we.workout_id = w.id
-                WHERE w.user_id = auth.uid()
-            ));
-        CREATE POLICY "Users can manage their own nutrition" ON nutrition_entries
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own habits" ON habits
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own habit completions" ON habit_completions
-            FOR ALL USING (auth.uid() = user_id);
-        CREATE POLICY "Users can manage their own routines" ON workout_routines
-            FOR ALL USING (auth.uid() = user_id);
-    END IF;
-END $$;
+-- Default policies: Permit access for authenticated users, service role, and anon
+-- (Allows SYDD personal sync to function seamlessly with either anon key or service_role key)
+DROP POLICY IF EXISTS "Users can manage their own settings" ON user_settings;
+DROP POLICY IF EXISTS "Users can manage their own daily records" ON daily_records;
+DROP POLICY IF EXISTS "Users can manage their own workouts" ON workouts;
+DROP POLICY IF EXISTS "Users can manage their own exercises" ON workout_exercises;
+DROP POLICY IF EXISTS "Users can manage their own sets" ON workout_sets;
+DROP POLICY IF EXISTS "Users can manage their own nutrition" ON nutrition_entries;
+DROP POLICY IF EXISTS "Users can manage their own habits" ON habits;
+DROP POLICY IF EXISTS "Users can manage their own habit completions" ON habit_completions;
+DROP POLICY IF EXISTS "Users can manage their own routines" ON workout_routines;
+
+CREATE POLICY "Allow sync on user_settings" ON user_settings FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on daily_records" ON daily_records FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on workouts" ON workouts FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on workout_exercises" ON workout_exercises FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on workout_sets" ON workout_sets FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on nutrition_entries" ON nutrition_entries FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on habits" ON habits FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on habit_completions" ON habit_completions FOR ALL USING (true) WITH CHECK (true);
+CREATE POLICY "Allow sync on workout_routines" ON workout_routines FOR ALL USING (true) WITH CHECK (true);

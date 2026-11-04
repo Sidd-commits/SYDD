@@ -22,7 +22,7 @@ import {
   WorkoutRoutine,
   WorkoutType,
 } from "@/types";
-import { StorageService, getDefaultAppData, validateAndMigrateData } from "@/lib/storage";
+import { StorageService, getDefaultAppData, validateAndMigrateData, mergeAppData } from "@/lib/storage";
 import { IDBStorage } from "@/lib/idbStorage";
 import { STORAGE_KEY } from "@/lib/constants";
 import { getTodayISODate } from "@/lib/dateUtils";
@@ -313,13 +313,51 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
             }
           }
         }
+        // 4. Background Cloud Sync: Pull latest records from Supabase / cloud and merge
+        try {
+          const cloudRes = await SyncService.fetchLatestBackup();
+          if (cloudRes.success && cloudRes.data && mounted) {
+            const validated = validateAndMigrateData(cloudRes.data);
+            const currentLocal = getDataSnapshot();
+            const merged = mergeAppData(currentLocal, validated);
+            StorageService.save(merged);
+            emitDataChange(merged);
+            setSyncState("synced");
+          }
+        } catch {
+          // Keep local if offline
+        }
       } catch (err) {
         console.warn("[SYDD] IndexedDB initialization warning:", err);
       }
     };
     initIDB();
+
+    const handleWindowFocus = async () => {
+      try {
+        const cloudRes = await SyncService.fetchLatestBackup();
+        if (cloudRes.success && cloudRes.data && mounted) {
+          const validated = validateAndMigrateData(cloudRes.data);
+          const currentLocal = getDataSnapshot();
+          const merged = mergeAppData(currentLocal, validated);
+          StorageService.save(merged);
+          emitDataChange(merged);
+          setSyncState("synced");
+        }
+      } catch {
+        // Keep local if offline
+      }
+    };
+
+    if (typeof window !== "undefined") {
+      window.addEventListener("focus", handleWindowFocus);
+    }
+
     return () => {
       mounted = false;
+      if (typeof window !== "undefined") {
+        window.removeEventListener("focus", handleWindowFocus);
+      }
     };
   }, []);
 

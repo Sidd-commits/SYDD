@@ -1,6 +1,11 @@
 import { NextResponse } from "next/server";
-import initialBackupData from "@/lib/initialHistoricalData.json";
+import { getCloudAppData } from "@/lib/supabaseStorage";
 
 export async function GET() {
-  return NextResponse.json(initialBackupData);
+  const data = await getCloudAppData();
+  return NextResponse.json({
+    schemaVersion: 1,
+    timestamp: new Date().toISOString(),
+    data,
+  });
 }

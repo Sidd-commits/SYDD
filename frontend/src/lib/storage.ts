@@ -469,3 +469,104 @@ export const StorageService = {
     return sampleData;
   },
 };
+
+/**
+ * Safely merges local and remote AppData using timestamp-based conflict resolution.
+ * Guarantees that neither device loses records.
+ */
+export function mergeAppData(local: AppData, remote: AppData): AppData {
+  const mergedDaily = [...(local.dailyRecords || [])];
+  (remote.dailyRecords || []).forEach((rRemote) => {
+    const idx = mergedDaily.findIndex((r) => r.date === rRemote.date);
+    if (idx >= 0) {
+      const localTime = Date.parse(mergedDaily[idx].updatedAt || "") || 0;
+      const remoteTime = Date.parse(rRemote.updatedAt || "") || 0;
+      if (remoteTime >= localTime) {
+        mergedDaily[idx] = { ...mergedDaily[idx], ...rRemote };
+      }
+    } else {
+      mergedDaily.push(rRemote);
+    }
+  });
+
+  const mergedNutrition = [...(local.nutritionEntries || [])];
+  (remote.nutritionEntries || []).forEach((nRemote) => {
+    const idx = mergedNutrition.findIndex((n) => n.id === nRemote.id);
+    if (idx >= 0) {
+      const localTime = Date.parse(mergedNutrition[idx].updatedAt || "") || 0;
+      const remoteTime = Date.parse(nRemote.updatedAt || "") || 0;
+      if (remoteTime >= localTime) {
+        mergedNutrition[idx] = { ...mergedNutrition[idx], ...nRemote };
+      }
+    } else {
+      mergedNutrition.push(nRemote);
+    }
+  });
+
+  const mergedWorkouts = [...(local.workouts || [])];
+  (remote.workouts || []).forEach((wRemote) => {
+    const idx = mergedWorkouts.findIndex((w) => w.id === wRemote.id);
+    if (idx >= 0) {
+      const localTime = Date.parse(mergedWorkouts[idx].updatedAt || "") || 0;
+      const remoteTime = Date.parse(wRemote.updatedAt || "") || 0;
+      if (remoteTime >= localTime) {
+        mergedWorkouts[idx] = { ...mergedWorkouts[idx], ...wRemote };
+      }
+    } else {
+      mergedWorkouts.push(wRemote);
+    }
+  });
+
+  const mergedHabits = [...(local.habits || [])];
+  (remote.habits || []).forEach((hRemote) => {
+    const idx = mergedHabits.findIndex((h) => h.id === hRemote.id);
+    if (idx >= 0) {
+      mergedHabits[idx] = { ...mergedHabits[idx], ...hRemote };
+    } else {
+      mergedHabits.push(hRemote);
+    }
+  });
+
+  const mergedCompletions = [...(local.habitCompletions || [])];
+  (remote.habitCompletions || []).forEach((cRemote) => {
+    const idx = mergedCompletions.findIndex(
+      (c) => c.habitId === cRemote.habitId && c.date === cRemote.date
+    );
+    if (idx >= 0) {
+      const localTime = Date.parse(mergedCompletions[idx].updatedAt || "") || 0;
+      const remoteTime = Date.parse(cRemote.updatedAt || "") || 0;
+      if (remoteTime >= localTime) {
+        mergedCompletions[idx] = { ...mergedCompletions[idx], ...cRemote };
+      }
+    } else {
+      mergedCompletions.push(cRemote);
+    }
+  });
+
+  const mergedRoutines = [...(local.workoutRoutines || [])];
+  (remote.workoutRoutines || []).forEach((rRemote) => {
+    const idx = mergedRoutines.findIndex((r) => r.id === rRemote.id);
+    if (idx >= 0) {
+      mergedRoutines[idx] = { ...mergedRoutines[idx], ...rRemote };
+    } else {
+      mergedRoutines.push(rRemote);
+    }
+  });
+
+  return {
+    settings: {
+      ...local.settings,
+      ...remote.settings,
+      goals: {
+        ...local.settings.goals,
+        ...remote.settings.goals,
+      },
+    },
+    dailyRecords: mergedDaily,
+    workouts: mergedWorkouts,
+    habits: mergedHabits,
+    habitCompletions: mergedCompletions,
+    nutritionEntries: mergedNutrition,
+    workoutRoutines: mergedRoutines,
+  };
+}

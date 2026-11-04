@@ -4,6 +4,7 @@ import {
   getDefaultAppData,
   validateAndMigrateData,
   StorageService,
+  mergeAppData,
 } from "./storage";
 
 test("validateAndMigrateData gracefully handles undefined, null, or garbage data", () => {
@@ -235,4 +236,68 @@ test("validateAndMigrateData deduplicates habitCompletions for identical habitId
   const waterCompletion = migrated.habitCompletions.find((c) => c.habitId === "habit-water");
   assert.strictEqual(waterCompletion?.completed, true);
   assert.strictEqual(waterCompletion?.updatedAt, "2026-10-28T12:00:00Z");
+});
+
+test("mergeAppData resolves cross-device updates using latest timestamps (phone hydration scenario)", () => {
+  const laptopData = getDefaultAppData();
+  laptopData.dailyRecords = [
+    {
+      date: "2026-11-04",
+      waterMl: 0,
+      steps: 3000,
+      updatedAt: "2026-11-04T10:00:00.000Z",
+    },
+  ];
+
+  // Phone updated hydration to 1500ml at 10:30
+  const phoneData = getDefaultAppData();
+  phoneData.dailyRecords = [
+    {
+      date: "2026-11-04",
+      waterMl: 1500,
+      steps: 3000,
+      updatedAt: "2026-11-04T10:30:00.000Z",
+    },
+  ];
+
+  const merged = mergeAppData(laptopData, phoneData);
+  const todayRecord = merged.dailyRecords.find((r) => r.date === "2026-11-04");
+  assert.ok(todayRecord);
+  assert.strictEqual(todayRecord.waterMl, 1500);
+  assert.strictEqual(todayRecord.steps, 3000);
+});
+
+test("mergeAppData preserves non-conflicting cross-device additions without data loss", () => {
+  const laptopData = getDefaultAppData();
+  laptopData.nutritionEntries = [
+    {
+      id: "meal-laptop",
+      date: "2026-11-04",
+      name: "Oatmeal",
+      calories: 350,
+      proteinG: 12,
+      carbsG: 60,
+      fatG: 6,
+      createdAt: "2026-11-04T08:00:00.000Z",
+      updatedAt: "2026-11-04T08:00:00.000Z",
+    },
+  ];
+
+  const phoneData = getDefaultAppData();
+  phoneData.workouts = [
+    {
+      id: "workout-phone",
+      date: "2026-11-04",
+      type: "strength",
+      durationMinutes: 45,
+      createdAt: "2026-11-04T09:00:00.000Z",
+      updatedAt: "2026-11-04T09:00:00.000Z",
+    },
+  ];
+
+  const merged = mergeAppData(laptopData, phoneData);
+  assert.strictEqual(merged.nutritionEntries.length, 1);
+  assert.strictEqual(merged.nutritionEntries[0].id, "meal-laptop");
+  assert.strictEqual(merged.workouts.length, 1);
+  assert.strictEqual(merged.workouts[0].id, "workout-phone");
 });
