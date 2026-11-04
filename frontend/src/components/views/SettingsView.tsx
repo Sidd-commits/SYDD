@@ -570,7 +570,11 @@ export function SettingsView() {
                   {syncState === "syncing" || isManualSyncing
                     ? "Syncing..."
                     : syncState === "synced"
-                    ? "Synced (Port 5000)"
+                    ? backendHealth?.service === "sydd-vercel"
+                      ? "Synced (Cloud)"
+                      : "Synced (Port 5000)"
+                    : backendHealth?.service === "sydd-vercel"
+                    ? "Connected (Cloud)"
                     : "Connected (Port 5000)"}
                 </span>
               </span>
@@ -614,10 +618,12 @@ export function SettingsView() {
               </div>
               <div>
                 <span className="text-sm font-semibold text-white block group-hover:text-emerald-300 transition-colors">
-                  {isManualSyncing ? "Backing Up..." : "Back Up to Backend"}
+                  {isManualSyncing ? "Saving..." : "Save State Snapshot"}
                 </span>
                 <span className="text-xs text-zinc-400">
-                  Store snapshot in backend/data/
+                  {backendHealth?.service === "sydd-vercel"
+                    ? "Save backup snapshot to cloud"
+                    : "Store snapshot in backend/data/"}
                 </span>
               </div>
             </div>
