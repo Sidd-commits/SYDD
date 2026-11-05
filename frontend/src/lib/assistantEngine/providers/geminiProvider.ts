@@ -4,14 +4,13 @@ import { NUTRITION_CATALOG } from "../nutritionCatalog";
 
 export class GeminiProvider implements AiProvider {
   public readonly id = "gemini";
-  public readonly name = "Google Gemini (gemini-2.5-flash)";
+  public readonly name = "Google Gemini (gemini-3.5-flash)";
   private readonly configuredKey: string;
   private readonly candidateModels = [
-    "gemini-2.5-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash",
-    "gemini-2.5-flash-lite",
-    "gemini-1.5-flash-8b",
+    "gemini-3.5-flash",
+    "gemini-3.1-pro-preview",
+    "gemini-3.5-flash-lite",
+    "gemini-flash-latest",
   ];
 
   constructor(apiKey?: string) {
@@ -67,80 +66,107 @@ export class GeminiProvider implements AiProvider {
       },
     };
 
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
+    let attempt = 0;
+    while (attempt < 2) {
+      attempt++;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout for detailed dietary analysis
 
-    try {
-      const res = await fetch(url, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
-        signal: controller.signal,
-      });
+      try {
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
+          signal: controller.signal,
+        });
 
-      if (!res.ok) {
-        const errBody = await res.text();
-        throw new Error(`Gemini API returned HTTP ${res.status}: ${errBody}`);
+        // If high demand spike, retry once after short delay
+        if ((res.status === 503 || res.status === 429) && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 800));
+          continue;
+        }
+
+        if (!res.ok) {
+          const errBody = await res.text();
+          throw new Error(`Gemini API returned HTTP ${res.status}: ${errBody}`);
+        }
+
+        const json = await res.json();
+        const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) {
+          throw new Error("No candidate content received from Gemini.");
+        }
+
+        // Defensive cleanup: strip markdown code blocks if present
+        const cleanedText = rawText
+          .trim()
+          .replace(/^```(?:json)?\s*/i, "")
+          .replace(/\s*```$/i, "")
+          .trim();
+
+        const parsed = JSON.parse(cleanedText);
+        const proposedAction: ProposedAction | null = parsed.proposedAction
+          ? {
+              id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+              type: parsed.proposedAction.type,
+              title: parsed.proposedAction.title || "Proposed Action",
+              description: parsed.proposedAction.description || "",
+              data: parsed.proposedAction.data,
+              status: "pending",
+            }
+          : null;
+
+        return {
+          reply: parsed.reply || "I have analyzed your request.",
+          proposedAction,
+          providerUsed: this.id,
+          model,
+        };
+      } finally {
+        clearTimeout(timeout);
       }
-
-      const json = await res.json();
-      const rawText = json.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (!rawText) {
-        throw new Error("No candidate content received from Gemini.");
-      }
-
-      // Defensive cleanup: strip markdown code blocks if present
-      const cleanedText = rawText
-        .trim()
-        .replace(/^```(?:json)?\s*/i, "")
-        .replace(/\s*```$/i, "")
-        .trim();
-
-      const parsed = JSON.parse(cleanedText);
-      const proposedAction: ProposedAction | null = parsed.proposedAction
-        ? {
-            id: `act-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
-            type: parsed.proposedAction.type,
-            title: parsed.proposedAction.title || "Proposed Action",
-            description: parsed.proposedAction.description || "",
-            data: parsed.proposedAction.data,
-            status: "pending",
-          }
-        : null;
-
-      return {
-        reply: parsed.reply || "I have analyzed your request.",
-        proposedAction,
-        providerUsed: this.id,
-        model,
-      };
-    } finally {
-      clearTimeout(timeout);
     }
+
+    throw new Error(`Model ${model} request exceeded retry attempts.`);
   }
 
   private buildSystemPrompt(request: AssistantChatRequest): string {
     const ctx = request.context || { today: new Date().toISOString().slice(0, 10) };
-    const catalogSummary = NUTRITION_CATALOG.slice(0, 20)
+    const catalogSummary = NUTRITION_CATALOG.slice(0, 25)
       .map((c) => `- ${c.canonicalName}: ${c.servingDescription} = ${c.calories} kcal (P: ${c.proteinG}g, C: ${c.carbsG}g, F: ${c.fatG}g)`)
       .join("\n");
 
-    return `You are SYDD's built-in AI Fitness Assistant. SYDD is a personal fitness and health tracking web application.
-Your mission is to provide accurate, concise, helpful conversational fitness support, estimate nutrition with high precision, and answer questions using SYDD data.
+    return `You are SYDD's Elite AI Nutritionist & Fitness Assistant. SYDD is a personal fitness and health tracking web application.
+Your mission is to provide accurate, item-by-item, scientifically reliable nutrition estimates matching USDA and IFCT (Indian Food Composition Tables) standards, exactly like ChatGPT and Google Gemini.
 
-### RELEVANT USER SYDD CONTEXT TODAY (${ctx.today}):
+### USER CONTEXT TODAY (${ctx.today}):
 - Daily Record: Steps=${ctx.todayRecord?.steps ?? "not logged"}, Calories Consumed=${ctx.todayRecord?.caloriesConsumedKcal ?? 0} kcal, Water=${ctx.todayRecord?.waterMl ?? 0} ml
 - Daily Goals: Steps=${ctx.goals?.stepsPerDay ?? 8000}, Calories=${ctx.goals?.caloriesConsumedKcalPerDay ?? 2000} kcal, Protein=${ctx.goals?.proteinGPerDay ?? 130}g, Carbs=${ctx.goals?.carbsGPerDay ?? 225}g, Fat=${ctx.goals?.fatGPerDay ?? 65}g, Water=${ctx.goals?.waterMlPerDay ?? 2000}ml
 - Current Active Streak: ${ctx.streakDays ?? 0} days
-- Recent Workouts Logged: ${ctx.recentWorkouts?.length ?? 0}
+- Recent Workouts: ${ctx.recentWorkouts?.length ?? 0} logged
 
-### NUTRITIONAL BASELINE REFERENCE (IFCT & USDA standard portions):
+### CALIBRATED STANDARD REFERENCES:
 ${catalogSummary}
 
 ### CRITICAL RULES:
-1. Always format your output strictly as a JSON object matching this schema:
+1. When the user mentions food/meals they ate or want to evaluate:
+   - Break down every meal (Breakfast, Lunch, Dinner, Snack) with itemized bullet points.
+   - For every single food item, list: assumed portion/weight (in grams), Calories (kcal), Protein (g), Carbohydrates (g), and Fat (g).
+   - Compute exact totals for Calories, Protein, Carbs, and Fat. Ensure 4*P + 4*C + 9*F matches the calories closely.
+   - Display a clean summary comparison of totals against the user's daily goals (e.g., remaining protein or calories).
+   - Set "proposedAction" with type "add_nutrition" and data: { name, calories, proteinG, carbsG, fatG, isEstimate: true }.
+   - If multiple foods are mentioned, aggregate the totals into a unified entry so the user can log it in one click.
+
+2. When the user asks about their SYDD data (e.g. "How many calories have I consumed today?", "How much protein do I still need?"):
+   - Calculate exact values using the user context provided above.
+   - Set "proposedAction": null.
+
+3. When the user asks to log water or workout:
+   - Set "proposedAction" accordingly (e.g. type: "log_water", data: { amountMl: 500, mode: "add" }).
+
+4. Always output strictly a valid JSON object matching this schema:
 {
-  "reply": "string (Clean markdown conversational reply)",
+  "reply": "string (Clean markdown formatted with emoji tags, meal headers, and bullet points)",
   "proposedAction": {
     "type": "add_nutrition" | "log_water" | "log_steps" | "add_workout",
     "title": "string",
@@ -148,18 +174,7 @@ ${catalogSummary}
     "data": { ... }
   } | null
 }
-2. When the user mentions food they ate or want to log:
-   - Break down each food item and quantity.
-   - Estimate Calories (kcal), Protein (g), Carbohydrates (g), and Fat (g).
-   - If quantities are ambiguous (e.g. "a bowl of dal"), assume standard medium portion and note the assumption gently.
-   - Set "proposedAction" with type "add_nutrition" and data: { name, calories, proteinG, carbsG, fatG, isEstimate: true }.
-   - In your reply, always make it clear that nutritional values are approximate estimates and ask if they would like to confirm logging it.
-3. When the user asks about their SYDD data (e.g. "How many calories have I consumed today?", "How much protein do I still need?"):
-   - Calculate exact values using the user context provided above.
-   - Set "proposedAction": null.
-4. When the user asks to log water or workout:
-   - Set "proposedAction" accordingly (e.g. type: "log_water", data: { amountMl: 500, mode: "add" }).
-5. NEVER claim you have modified or saved the database. You only PROPOSE actions for the user to confirm.`;
+5. NEVER claim you have modified or saved the database. You only PROPOSE actions for the user to confirm with one click.`;
   }
 
   private formatMessagesForGemini(
@@ -182,4 +197,3 @@ ${catalogSummary}
     return formatted;
   }
 }
-

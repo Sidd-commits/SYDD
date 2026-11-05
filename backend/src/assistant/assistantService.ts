@@ -52,7 +52,7 @@ export class AssistantService {
   public static getStatus(): { activeProvider: string; hasCloudAiKey: boolean } {
     const hasKey = this.geminiProvider.isAvailable();
     return {
-      activeProvider: hasKey ? "Google Gemini (gemini-3.5-flash-lite)" : "SYDD Local Heuristics",
+      activeProvider: hasKey ? "Google Gemini (gemini-3.5-flash)" : "SYDD Local Heuristics",
       hasCloudAiKey: hasKey,
     };
   }
