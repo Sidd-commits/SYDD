@@ -53,6 +53,11 @@ next-env.d.ts
 opencode.jsonc
 *.swp
 
+# Local Tooling & Agent Artifacts (kept strictly local)
+.agents/
+skills-lock.json
+.planning/
+
 # Local documentation & project briefs (kept strictly local)
 SYDD_Project_Brief/
 AGENTS.md
