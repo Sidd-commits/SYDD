@@ -68,7 +68,7 @@ export class AssistantService {
     }
     const hasGemini = this.geminiProvider.isAvailable();
     return {
-      activeProvider: hasGemini ? "Google Gemini (gemini-3.5-flash)" : "SYDD Local Heuristics",
+      activeProvider: hasGemini ? "Google Gemini (gemini-3.1-flash-lite)" : "SYDD Local Heuristics",
       hasCloudAiKey: hasGemini,
     };
   }

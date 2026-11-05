@@ -65,45 +65,66 @@ export class AssistantService {
       proposedAction: m.proposedAction,
     }));
 
-    try {
+    let attempts = 0;
+    let lastError: Error | null = null;
+
+    while (attempts < 2) {
+      attempts++;
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15s timeout
+      const timeoutId = setTimeout(() => controller.abort(), 45000); // Generous 45s timeout for AI reasoning & multi-item calculations
 
-      const res = await fetch(`${BACKEND_URL}/api/assistant/chat`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify({
-          messages: payloadMessages,
-          context,
-        }),
-        signal: controller.signal,
-      });
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/assistant/chat`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify({
+            messages: payloadMessages,
+            context,
+          }),
+          signal: controller.signal,
+        });
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      if (!res.ok) {
-        const errorText = await res.text();
-        let errorMsg = `Server error (HTTP ${res.status})`;
-        try {
-          const parsed = JSON.parse(errorText);
-          if (parsed.error) errorMsg = parsed.error;
-        } catch {
-          // Keep default message
+        if (!res.ok) {
+          // If server error or transient timeout and we have attempts left, retry once
+          if ((res.status === 503 || res.status === 504) && attempts < 2) {
+            await new Promise((resolve) => setTimeout(resolve, 800));
+            continue;
+          }
+
+          const errorText = await res.text();
+          let errorMsg = `Server error (HTTP ${res.status})`;
+          try {
+            const parsed = JSON.parse(errorText);
+            if (parsed.error) errorMsg = parsed.error;
+          } catch {
+            // Keep default message
+          }
+          throw new Error(errorMsg);
         }
-        throw new Error(errorMsg);
-      }
 
-      return await res.json();
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Failed to connect to assistant service.";
-      return {
-        reply: `⚠️ **Unable to reach assistant service:** ${msg}\n\n*Make sure the SYDD backend is running on port 5000.*`,
-        providerUsed: "error",
-      };
+        return await res.json();
+      } catch (err: unknown) {
+        clearTimeout(timeoutId);
+        lastError = err instanceof Error ? err : new Error(String(err));
+
+        // If it was aborted or network glitch, retry once
+        if (attempts < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 600));
+          continue;
+        }
+      }
     }
+
+    const msg = lastError?.message || "Failed to connect to assistant service.";
+    return {
+      reply: `⚠️ **Unable to reach assistant service:** ${msg}\n\n*Please check your internet connection or try asking again in a moment.*`,
+      providerUsed: "error",
+    };
   }
 
   /**

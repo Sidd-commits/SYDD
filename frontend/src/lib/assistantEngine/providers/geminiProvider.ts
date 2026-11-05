@@ -4,12 +4,12 @@ import { NUTRITION_CATALOG } from "../nutritionCatalog";
 
 export class GeminiProvider implements AiProvider {
   public readonly id = "gemini";
-  public readonly name = "Google Gemini (gemini-3.5-flash)";
+  public readonly name = "Google Gemini (gemini-3.1-flash-lite)";
   private readonly configuredKey: string;
   private readonly candidateModels = [
+    "gemini-3.1-flash-lite",
     "gemini-3.5-flash",
     "gemini-3.5-flash-lite",
-    "gemini-flash-latest",
   ];
 
   constructor(apiKey?: string) {
