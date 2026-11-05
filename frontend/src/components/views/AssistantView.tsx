@@ -5,7 +5,8 @@ import { useApp } from "@/context/AppContext";
 import { ChatMessage, ProposedAction, ProposedNutritionData, ProposedWaterData, ProposedStepsData, ProposedWorkoutData } from "@/types";
 import { AssistantService } from "@/lib/assistantService";
 import { ActionConfirmationCard } from "../ActionConfirmationCard";
-import { Sparkles, Send, Trash2, Bot, User, RefreshCw, Zap } from "lucide-react";
+import { Sparkles, Send, Trash2, Bot, User, RefreshCw, Zap, Mic, MicOff, Volume2, VolumeX } from "lucide-react";
+import { useSpeechRecognition } from "@/lib/useSpeechRecognition";
 
 const SUGGESTIONS = [
   "3 eggs, 2 rotis and a banana",
@@ -50,7 +51,76 @@ export function AssistantView() {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [providerInfo, setProviderInfo] = useState<string>("Initializing...");
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const baseInputRef = useRef("");
+
+  // Speech-to-text hook
+  const {
+    isSupported: isSpeechSupported,
+    isListening,
+    stopListening,
+    toggleListening,
+  } = useSpeechRecognition({
+    onTranscriptChange: (liveText) => {
+      setInput(baseInputRef.current + liveText);
+    },
+    onError: (errMsg) => {
+      showToast(errMsg);
+    },
+  });
+
+  const handleMicToggle = () => {
+    if (!isSpeechSupported) {
+      showToast("Voice input is not supported in this browser. Try Chrome, Edge, or Safari.");
+      return;
+    }
+    if (!isListening) {
+      // Retain already typed text and add a space if needed
+      baseInputRef.current = input ? `${input.trim()} ` : "";
+    }
+    toggleListening();
+  };
+
+  // Text-to-speech handler
+  const handleSpeak = (msgId: string, text: string) => {
+    if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+      showToast("Text-to-speech is not supported in this browser.");
+      return;
+    }
+
+    if (speakingMsgId === msgId) {
+      window.speechSynthesis.cancel();
+      setSpeakingMsgId(null);
+      return;
+    }
+
+    window.speechSynthesis.cancel();
+
+    const cleanText = text
+      .replace(/[*_#`~]/g, "")
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+      .trim();
+
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.rate = 1.0;
+    utterance.pitch = 1.0;
+    utterance.lang = "en-US";
+    utterance.onend = () => setSpeakingMsgId(null);
+    utterance.onerror = () => setSpeakingMsgId(null);
+
+    setSpeakingMsgId(msgId);
+    window.speechSynthesis.speak(utterance);
+  };
+
+  // Cancel speech on unmount
+  useEffect(() => {
+    return () => {
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   // Sync messages to localStorage
   useEffect(() => {
@@ -78,6 +148,10 @@ export function AssistantView() {
   }, [messages, isLoading]);
 
   const handleSend = async (textToSend?: string) => {
+    if (isListening) {
+      stopListening();
+    }
+
     const text = (textToSend || input).trim();
     if (!text || isLoading) return;
 
@@ -244,10 +318,40 @@ export function AssistantView() {
                 className={`p-3.5 rounded-2xl text-xs sm:text-sm leading-relaxed ${
                   msg.role === "user"
                     ? "bg-emerald-600 text-white rounded-tr-xs shadow-xs"
-                    : "bg-[#161923] text-zinc-200 rounded-tl-xs border border-white/[0.06] shadow-sm"
+                    : "bg-[#161923] text-zinc-200 rounded-tl-xs border border-white/[0.06] shadow-sm relative group"
                 }`}
               >
                 <div className="whitespace-pre-wrap">{formatMarkdownText(msg.content)}</div>
+
+                {msg.role === "assistant" && (
+                  <div className="mt-2 pt-1.5 border-t border-white/[0.05] flex items-center justify-between text-[11px] text-zinc-400">
+                    <span className="text-[10px] text-zinc-500 font-mono">
+                      {new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => handleSpeak(msg.id, msg.content)}
+                      title={speakingMsgId === msg.id ? "Stop voice audio" : "Listen (Read aloud)"}
+                      className={`flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] transition-colors cursor-pointer ${
+                        speakingMsgId === msg.id
+                          ? "text-emerald-400 bg-emerald-500/15 font-medium"
+                          : "text-zinc-400 hover:text-zinc-200 hover:bg-white/[0.05]"
+                      }`}
+                    >
+                      {speakingMsgId === msg.id ? (
+                        <>
+                          <VolumeX className="w-3.5 h-3.5 text-emerald-400 animate-pulse" />
+                          <span>Stop</span>
+                        </>
+                      ) : (
+                        <>
+                          <Volume2 className="w-3.5 h-3.5" />
+                          <span>Listen</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                )}
               </div>
 
               {/* Action Proposal Card if present */}
@@ -296,6 +400,26 @@ export function AssistantView() {
         ))}
       </div>
 
+      {/* Active Listening Wave Banner */}
+      {isListening && (
+        <div className="px-4 py-2 bg-red-950/40 border-t border-red-500/30 flex items-center justify-between text-xs text-red-300 animate-pulse">
+          <div className="flex items-center gap-2">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+            </span>
+            <span className="font-medium tracking-tight">Listening... speak your meal or question</span>
+          </div>
+          <button
+            type="button"
+            onClick={stopListening}
+            className="text-[11px] font-semibold text-red-200 hover:text-white px-2.5 py-0.5 rounded bg-red-500/20 hover:bg-red-500/30 transition-all cursor-pointer"
+          >
+            Done
+          </button>
+        </div>
+      )}
+
       {/* Input Bar */}
       <form
         onSubmit={(e) => {
@@ -309,10 +433,51 @@ export function AssistantView() {
           value={input}
           disabled={isLoading}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask anything or describe a meal: '3 eggs, 2 rotis and a banana'..."
-          className="flex-1 bg-[#12141c] text-white text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border border-white/[0.08] focus:outline-hidden focus:border-emerald-500/50 placeholder:text-zinc-400 transition-all"
+          placeholder={
+            isListening
+              ? "Listening to your voice..."
+              : "Ask anything or tap mic to speak: '3 eggs, 2 rotis and a banana'..."
+          }
+          className={`flex-1 bg-[#12141c] text-white text-xs sm:text-sm px-3.5 py-2.5 rounded-xl border transition-all ${
+            isListening
+              ? "border-red-500/60 shadow-xs shadow-red-500/10 placeholder:text-red-400/80"
+              : "border-white/[0.08] focus:border-emerald-500/50 placeholder:text-zinc-400"
+          } focus:outline-hidden`}
         />
 
+        {/* Microphone Voice Button */}
+        <button
+          type="button"
+          onClick={handleMicToggle}
+          disabled={isLoading}
+          title={
+            !isSpeechSupported
+              ? "Speech recognition is not supported in this browser"
+              : isListening
+              ? "Listening... click to finish speaking"
+              : "Click to speak with microphone"
+          }
+          aria-label={isListening ? "Stop listening" : "Start voice input"}
+          className={`p-2.5 sm:px-3 sm:py-2.5 rounded-xl border transition-all duration-150 cursor-pointer flex items-center gap-1.5 shrink-0 ${
+            isListening
+              ? "bg-red-500/20 border-red-500 text-red-400 animate-pulse shadow-md shadow-red-500/20 active:scale-95"
+              : "bg-[#12141c] hover:bg-white/[0.05] border-white/[0.08] text-zinc-400 hover:text-white active:scale-95"
+          } ${!isSpeechSupported ? "opacity-40 cursor-not-allowed" : ""}`}
+        >
+          {isListening ? (
+            <>
+              <MicOff className="w-4 h-4 text-red-400" />
+              <span className="text-xs font-semibold text-red-400 hidden sm:inline">Stop</span>
+            </>
+          ) : (
+            <>
+              <Mic className="w-4 h-4" />
+              <span className="text-xs font-medium text-zinc-300 hidden sm:inline">Voice</span>
+            </>
+          )}
+        </button>
+
+        {/* Send Button */}
         <button
           type="submit"
           disabled={!input.trim() || isLoading}
